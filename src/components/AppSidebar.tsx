@@ -46,27 +46,27 @@ export function AppSidebar() {
   
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-primary text-primary-foreground font-medium hover:bg-primary-hover" 
-      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary/90" 
+      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 
   return (
     <Sidebar className="w-64">
-      <SidebarContent className="bg-card border-r">
+      <SidebarContent className="bg-sidebar border-sidebar-border border-r">
         {/* Logo/Brand */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Truck className="h-5 w-5 text-primary-foreground" />
+            <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
+              <Truck className="h-5 w-5 text-sidebar-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-bold text-lg text-foreground">TMS Edu</h2>
-              <p className="text-xs text-muted-foreground">Sistema Educacional</p>
+              <h2 className="font-bold text-lg text-sidebar-foreground">TMS Edu</h2>
+              <p className="text-xs text-sidebar-foreground/70">Sistema Educacional</p>
             </div>
           </div>
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Principais</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/90 font-semibold">Principais</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
@@ -88,7 +88,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Administração</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/90 font-semibold">Administração</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {managementItems.map((item) => (
