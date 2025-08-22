@@ -8,28 +8,28 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 248 250 252;
+    --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
-    --card: 255 255 255;
+    --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 255 255 255;
+    --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
     /* TMS Corporate Blue */
     --primary: 214 88% 52%;
-    --primary-foreground: 255 255 255;
+    --primary-foreground: 0 0% 100%;
     --primary-hover: 214 88% 45%;
     
     /* Transport Green */
     --success: 142 76% 36%;
-    --success-foreground: 255 255 255;
+    --success-foreground: 0 0% 100%;
     --success-light: 142 76% 50%;
     
     /* Warning Orange */
     --warning: 38 92% 50%;
-    --warning-foreground: 255 255 255;
+    --warning-foreground: 0 0% 100%;
     --warning-light: 38 92% 60%;
 
     --secondary: 215 27.9% 16.9%;
@@ -45,25 +45,18 @@ All colors MUST be HSL.
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
-    --input: 255 255 255;
+    --input: 0 0% 100%;
     --ring: 214 88% 52%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -78,15 +71,15 @@ All colors MUST be HSL.
     --popover-foreground: 210 40% 98%;
 
     --primary: 214 88% 52%;
-    --primary-foreground: 255 255 255;
+    --primary-foreground: 0 0% 100%;
     --primary-hover: 214 88% 45%;
 
     --success: 142 76% 36%;
-    --success-foreground: 255 255 255;
+    --success-foreground: 0 0% 100%;
     --success-light: 142 76% 50%;
     
     --warning: 38 92% 50%;
-    --warning-foreground: 255 255 255;
+    --warning-foreground: 0 0% 100%;
     --warning-light: 38 92% 60%;
 
     --secondary: 217.2 32.6% 17.5%;

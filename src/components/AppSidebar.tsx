@@ -46,8 +46,8 @@ export function AppSidebar() {
   
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium hover:bg-sidebar-primary/90" 
-      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      ? "bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors" 
+      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
 
   return (
     <Sidebar className="w-64">
@@ -60,13 +60,13 @@ export function AppSidebar() {
             </div>
             <div>
               <h2 className="font-bold text-lg text-sidebar-foreground">TMS Edu</h2>
-              <p className="text-xs text-sidebar-foreground/70">Sistema Educacional</p>
+              <p className="text-xs text-sidebar-foreground/60">Sistema Educacional</p>
             </div>
           </div>
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/90 font-semibold">Principais</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/70 font-semibold text-xs uppercase tracking-wide">Principais</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
@@ -88,7 +88,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/90 font-semibold">Administração</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/70 font-semibold text-xs uppercase tracking-wide">Administração</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {managementItems.map((item) => (
