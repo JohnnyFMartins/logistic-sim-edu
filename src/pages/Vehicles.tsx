@@ -13,7 +13,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Truck, Plus, Edit, Trash2, Fuel, Weight } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Vehicle {
   id: string
@@ -62,6 +74,8 @@ const mockVehicles: Vehicle[] = [
 const Vehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [formData, setFormData] = useState({
     plate: '',
     model: '',
@@ -70,6 +84,7 @@ const Vehicles = () => {
     capacity: '',
     maintenanceCost: ''
   })
+  const { toast } = useToast()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,6 +108,63 @@ const Vehicles = () => {
       maintenanceCost: ''
     })
     setIsDialogOpen(false)
+    toast({
+      title: "Veículo cadastrado",
+      description: "O veículo foi adicionado com sucesso à frota.",
+    })
+  }
+
+  const handleEdit = (vehicle: Vehicle) => {
+    setEditingVehicle(vehicle)
+    setFormData({
+      plate: vehicle.plate,
+      model: vehicle.model,
+      year: vehicle.year.toString(),
+      consumption: vehicle.consumption.toString(),
+      capacity: vehicle.capacity.toString(),
+      maintenanceCost: vehicle.maintenanceCost.toString()
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingVehicle) return
+    
+    const updatedVehicle: Vehicle = {
+      ...editingVehicle,
+      plate: formData.plate,
+      model: formData.model,
+      year: parseInt(formData.year),
+      consumption: parseFloat(formData.consumption),
+      capacity: parseInt(formData.capacity),
+      maintenanceCost: parseFloat(formData.maintenanceCost)
+    }
+    
+    setVehicles(vehicles.map(v => v.id === editingVehicle.id ? updatedVehicle : v))
+    setFormData({
+      plate: '',
+      model: '',
+      year: '',
+      consumption: '',
+      capacity: '',
+      maintenanceCost: ''
+    })
+    setIsEditDialogOpen(false)
+    setEditingVehicle(null)
+    toast({
+      title: "Veículo atualizado",
+      description: "As informações do veículo foram atualizadas com sucesso.",
+    })
+  }
+
+  const handleDelete = (vehicleId: string) => {
+    setVehicles(vehicles.filter(v => v.id !== vehicleId))
+    toast({
+      title: "Veículo removido",
+      description: "O veículo foi removido da frota.",
+      variant: "destructive",
+    })
   }
 
   const getStatusBadge = (status: string) => {
@@ -223,6 +295,103 @@ const Vehicles = () => {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Editar Veículo</DialogTitle>
+              <DialogDescription>
+                Altere as informações do veículo {editingVehicle?.plate}.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-plate">Placa</Label>
+                  <Input
+                    id="edit-plate"
+                    placeholder="ABC-1234"
+                    value={formData.plate}
+                    onChange={(e) => setFormData({ ...formData, plate: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-year">Ano</Label>
+                  <Input
+                    id="edit-year"
+                    type="number"
+                    min="1990"
+                    max="2024"
+                    placeholder="2020"
+                    value={formData.year}
+                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-model">Modelo</Label>
+                <Input
+                  id="edit-model"
+                  placeholder="Volvo FH-460"
+                  value={formData.model}
+                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-consumption">Consumo (km/l)</Label>
+                  <Input
+                    id="edit-consumption"
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    placeholder="3.2"
+                    value={formData.consumption}
+                    onChange={(e) => setFormData({ ...formData, consumption: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-capacity">Capacidade (kg)</Label>
+                  <Input
+                    id="edit-capacity"
+                    type="number"
+                    min="1000"
+                    placeholder="40000"
+                    value={formData.capacity}
+                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-maintenanceCost">Manutenção (R$/km)</Label>
+                  <Input
+                    id="edit-maintenanceCost"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.85"
+                    value={formData.maintenanceCost}
+                    onChange={(e) => setFormData({ ...formData, maintenanceCost: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="secondary" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  Salvar Alterações
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Vehicle Cards */}
@@ -266,13 +435,40 @@ const Vehicles = () => {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button variant="secondary" size="sm" className="flex-1">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleEdit(vehicle)}
+                >
                   <Edit className="h-4 w-4 mr-1" />
                   Editar
                 </Button>
-                <Button variant="destructive" size="sm">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir o veículo {vehicle.plate}? 
+                        Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(vehicle.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </CardContent>
           </Card>
