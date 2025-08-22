@@ -1,6 +1,8 @@
+
 import { MetricCard } from "@/components/MetricCard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
 import { 
   Truck, 
   Route, 
@@ -13,6 +15,8 @@ import {
 } from "lucide-react"
 
 const Index = () => {
+  const navigate = useNavigate()
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -71,7 +75,7 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full">
+            <Button className="w-full" onClick={() => navigate('/vehicles')}>
               Novo Veículo
             </Button>
           </CardContent>
@@ -88,7 +92,7 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="secondary" className="w-full">
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/routes')}>
               Nova Rota
             </Button>
           </CardContent>
@@ -105,7 +109,7 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="secondary" className="w-full">
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/calculator')}>
               Calcular
             </Button>
           </CardContent>
