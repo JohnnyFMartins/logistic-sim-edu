@@ -47,7 +47,7 @@ export function AppSidebar() {
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
       ? "bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors" 
-      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+      : "text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
 
   return (
     <Sidebar className="w-64">
@@ -55,8 +55,8 @@ export function AppSidebar() {
         {/* Logo/Brand */}
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
-              <Truck className="h-5 w-5 text-sidebar-primary-foreground" />
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <Truck className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
               <h2 className="font-bold text-lg text-sidebar-foreground">TMS Edu</h2>
