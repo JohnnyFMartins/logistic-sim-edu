@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,56 +26,30 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Truck, Plus, Edit, Trash2, Fuel, Weight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/hooks/useAuth"
 
 interface Vehicle {
   id: string
+  user_id?: string
   plate: string
   model: string
   year: number
   consumption: number // km/l
   capacity: number // kg
-  maintenanceCost: number // R$/km
+  maintenance_cost: number // R$/km
   status: 'active' | 'maintenance' | 'inactive'
+  created_at?: string
+  updated_at?: string
 }
 
-const mockVehicles: Vehicle[] = [
-  {
-    id: '1',
-    plate: 'ABC-1234',
-    model: 'Volvo FH-460',
-    year: 2020,
-    consumption: 3.2,
-    capacity: 40000,
-    maintenanceCost: 0.85,
-    status: 'active'
-  },
-  {
-    id: '2',
-    plate: 'DEF-5678',
-    model: 'Scania R450',
-    year: 2019,
-    consumption: 3.0,
-    capacity: 35000,
-    maintenanceCost: 0.92,
-    status: 'active'
-  },
-  {
-    id: '3',
-    plate: 'GHI-9012',
-    model: 'Mercedes Actros',
-    year: 2021,
-    consumption: 3.4,
-    capacity: 42000,
-    maintenanceCost: 0.78,
-    status: 'maintenance'
-  }
-]
 
 const Vehicles = () => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles)
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [formData, setFormData] = useState({
     plate: '',
     model: '',
@@ -85,33 +59,103 @@ const Vehicles = () => {
     maintenanceCost: ''
   })
   const { toast } = useToast()
+  const { user } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const newVehicle: Vehicle = {
-      id: Date.now().toString(),
-      plate: formData.plate,
-      model: formData.model,
-      year: parseInt(formData.year),
-      consumption: parseFloat(formData.consumption),
-      capacity: parseInt(formData.capacity),
-      maintenanceCost: parseFloat(formData.maintenanceCost),
-      status: 'active'
+  // Fetch vehicles on component mount
+  useEffect(() => {
+    if (user) {
+      fetchVehicles()
     }
-    setVehicles([...vehicles, newVehicle])
-    setFormData({
-      plate: '',
-      model: '',
-      year: '',
-      consumption: '',
-      capacity: '',
-      maintenanceCost: ''
-    })
-    setIsDialogOpen(false)
-    toast({
-      title: "Veículo cadastrado",
-      description: "O veículo foi adicionado com sucesso à frota.",
-    })
+  }, [user])
+
+  const fetchVehicles = async () => {
+    try {
+      setIsLoading(true)
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      
+      // Map database fields to component interface
+      const mappedVehicles: Vehicle[] = data?.map(vehicle => ({
+        ...vehicle,
+        status: vehicle.status as 'active' | 'maintenance' | 'inactive'
+      })) || []
+      
+      setVehicles(mappedVehicles)
+    } catch (error) {
+      console.error('Error fetching vehicles:', error)
+      toast({
+        title: "Erro ao carregar veículos",
+        description: "Não foi possível carregar a lista de veículos.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!user) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para cadastrar veículos.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .insert([
+          {
+            user_id: user.id,
+            plate: formData.plate,
+            model: formData.model,
+            year: parseInt(formData.year),
+            consumption: parseFloat(formData.consumption),
+            capacity: parseInt(formData.capacity),
+            maintenance_cost: parseFloat(formData.maintenanceCost),
+            status: 'active'
+          }
+        ])
+        .select()
+
+      if (error) throw error
+
+      // Map and add to local state
+      const newVehicle: Vehicle = {
+        ...data[0],
+        status: data[0].status as 'active' | 'maintenance' | 'inactive'
+      }
+      setVehicles([newVehicle, ...vehicles])
+      
+      setFormData({
+        plate: '',
+        model: '',
+        year: '',
+        consumption: '',
+        capacity: '',
+        maintenanceCost: ''
+      })
+      setIsDialogOpen(false)
+      toast({
+        title: "Veículo cadastrado",
+        description: "O veículo foi adicionado com sucesso à frota.",
+      })
+    } catch (error) {
+      console.error('Error creating vehicle:', error)
+      toast({
+        title: "Erro ao cadastrar veículo",
+        description: "Não foi possível cadastrar o veículo. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleEdit = (vehicle: Vehicle) => {
@@ -122,49 +166,85 @@ const Vehicles = () => {
       year: vehicle.year.toString(),
       consumption: vehicle.consumption.toString(),
       capacity: vehicle.capacity.toString(),
-      maintenanceCost: vehicle.maintenanceCost.toString()
+      maintenanceCost: vehicle.maintenance_cost?.toString() || ''
     })
     setIsEditDialogOpen(true)
   }
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingVehicle) return
-    
-    const updatedVehicle: Vehicle = {
-      ...editingVehicle,
-      plate: formData.plate,
-      model: formData.model,
-      year: parseInt(formData.year),
-      consumption: parseFloat(formData.consumption),
-      capacity: parseInt(formData.capacity),
-      maintenanceCost: parseFloat(formData.maintenanceCost)
+
+    try {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .update({
+          plate: formData.plate,
+          model: formData.model,
+          year: parseInt(formData.year),
+          consumption: parseFloat(formData.consumption),
+          capacity: parseInt(formData.capacity),
+          maintenance_cost: parseFloat(formData.maintenanceCost)
+        })
+        .eq('id', editingVehicle.id)
+        .select()
+
+      if (error) throw error
+
+      // Map and update local state
+      const updatedVehicle: Vehicle = {
+        ...data[0],
+        status: data[0].status as 'active' | 'maintenance' | 'inactive'
+      }
+      
+      setVehicles(vehicles.map(v => v.id === editingVehicle.id ? updatedVehicle : v))
+      setFormData({
+        plate: '',
+        model: '',
+        year: '',
+        consumption: '',
+        capacity: '',
+        maintenanceCost: ''
+      })
+      setIsEditDialogOpen(false)
+      setEditingVehicle(null)
+      toast({
+        title: "Veículo atualizado",
+        description: "As informações do veículo foram atualizadas com sucesso.",
+      })
+    } catch (error) {
+      console.error('Error updating vehicle:', error)
+      toast({
+        title: "Erro ao atualizar veículo",
+        description: "Não foi possível atualizar o veículo. Tente novamente.",
+        variant: "destructive",
+      })
     }
-    
-    setVehicles(vehicles.map(v => v.id === editingVehicle.id ? updatedVehicle : v))
-    setFormData({
-      plate: '',
-      model: '',
-      year: '',
-      consumption: '',
-      capacity: '',
-      maintenanceCost: ''
-    })
-    setIsEditDialogOpen(false)
-    setEditingVehicle(null)
-    toast({
-      title: "Veículo atualizado",
-      description: "As informações do veículo foram atualizadas com sucesso.",
-    })
   }
 
-  const handleDelete = (vehicleId: string) => {
-    setVehicles(vehicles.filter(v => v.id !== vehicleId))
-    toast({
-      title: "Veículo removido",
-      description: "O veículo foi removido da frota.",
-      variant: "destructive",
-    })
+  const handleDelete = async (vehicleId: string) => {
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .delete()
+        .eq('id', vehicleId)
+
+      if (error) throw error
+
+      setVehicles(vehicles.filter(v => v.id !== vehicleId))
+      toast({
+        title: "Veículo removido",
+        description: "O veículo foi removido da frota.",
+        variant: "destructive",
+      })
+    } catch (error) {
+      console.error('Error deleting vehicle:', error)
+      toast({
+        title: "Erro ao remover veículo",
+        description: "Não foi possível remover o veículo. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -395,8 +475,21 @@ const Vehicles = () => {
       </div>
 
       {/* Vehicle Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {vehicles.map((vehicle) => (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="text-muted-foreground">Carregando veículos...</div>
+        </div>
+      ) : vehicles.length === 0 ? (
+        <div className="text-center py-8">
+          <Truck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Nenhum veículo cadastrado</h3>
+          <p className="text-muted-foreground mb-4">
+            Comece cadastrando seu primeiro veículo para gerenciar sua frota.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {vehicles.map((vehicle) => (
           <Card key={vehicle.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -430,7 +523,7 @@ const Vehicles = () => {
               <div className="pt-2 border-t">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Custo manutenção:</span>
-                  <span className="font-medium">R$ {vehicle.maintenanceCost}/km</span>
+                  <span className="font-medium">R$ {vehicle.maintenance_cost}/km</span>
                 </div>
               </div>
 
@@ -471,9 +564,10 @@ const Vehicles = () => {
                 </AlertDialog>
               </div>
             </CardContent>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Educational Notes */}
       <Card className="border-primary/20 bg-primary/5">
