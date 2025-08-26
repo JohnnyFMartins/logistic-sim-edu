@@ -222,10 +222,12 @@ export default function Cargo() {
     setIsDialogOpen(true);
   };
 
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setEditingCargo(null);
-    resetForm();
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingCargo(null);
+      resetForm();
+    }
   };
 
   const getTypeLabel = (type: string) => {
@@ -256,7 +258,7 @@ export default function Cargo() {
         
         <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
-            <Button onClick={() => setIsDialogOpen(true)}>
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Nova Carga
             </Button>
@@ -376,7 +378,7 @@ export default function Cargo() {
               </div>
               
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleDialogClose}>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
                 <Button type="submit">
