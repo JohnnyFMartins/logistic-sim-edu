@@ -54,23 +54,19 @@ interface Cargo {
 }
 
 interface CostCalculation {
-  fuelCost: number;
-  maintenanceCost: number;
-  totalDistance: number;
-  totalTime: number;
-  cargoWeight: number;
-  cargoValue: number;
-  totalCost: number;
+  id: string;
+  vehicleId: string;
+  routeId: string;
+  distance: number;
   costPerKm: number;
-  costPerKg: number;
+  totalCost: number;
+  calculatedAt: Date;
 }
 
 export default function Calculator() {
   const { user } = useAuth();
   const [selectedVehicle, setSelectedVehicle] = useState<string>("");
   const [selectedRoute, setSelectedRoute] = useState<string>("");
-  const [selectedCargo, setSelectedCargo] = useState<string>("");
-  const [fuelPrice, setFuelPrice] = useState("5.50");
   const [calculation, setCalculation] = useState<CostCalculation | null>(null);
 
   // Fetch vehicles
@@ -109,73 +105,44 @@ export default function Calculator() {
     enabled: !!user?.id,
   });
 
-  // Fetch cargo
-  const { data: cargo = [] } = useQuery({
-    queryKey: ["cargo"],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("cargo")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .order("name");
-      
-      if (error) throw error;
-      return data as Cargo[];
-    },
-    enabled: !!user?.id,
-  });
 
   // Calculate costs when selections change
   useEffect(() => {
-    if (selectedVehicle && selectedRoute && selectedCargo && fuelPrice) {
+    if (selectedVehicle && selectedRoute) {
       calculateCosts();
     }
-  }, [selectedVehicle, selectedRoute, selectedCargo, fuelPrice]);
+  }, [selectedVehicle, selectedRoute]);
 
   const calculateCosts = () => {
     const vehicle = vehicles.find(v => v.id === selectedVehicle);
     const route = routes.find(r => r.id === selectedRoute);
-    const cargoItem = cargo.find(c => c.id === selectedCargo);
     
-    if (!vehicle || !route || !cargoItem) return;
+    if (!vehicle || !route) return;
 
-    const fuelPriceNum = parseFloat(fuelPrice);
     const distance = Number(route.distance);
-    const consumption = Number(vehicle.consumption);
-    const maintenanceCostPerKm = Number(vehicle.maintenance_cost);
+    const costPerKm = Number(vehicle.maintenance_cost); // Usando maintenance_cost como custo por km
     
-    // Calculate fuel consumption (liters needed)
-    const fuelNeeded = distance / consumption;
-    const fuelCost = fuelNeeded * fuelPriceNum;
-    
-    // Calculate maintenance cost
-    const maintenanceCost = (maintenanceCostPerKm / 100) * distance;
-    
-    // Total cost
-    const totalCost = fuelCost + maintenanceCost;
+    // Cálculo simples: distância × custo por km
+    const totalCost = distance * costPerKm;
     
     const result: CostCalculation = {
-      fuelCost,
-      maintenanceCost,
-      totalDistance: distance,
-      totalTime: Number(route.estimated_time),
-      cargoWeight: Number(cargoItem.weight),
-      cargoValue: Number(cargoItem.value),
+      id: crypto.randomUUID(),
+      vehicleId: selectedVehicle,
+      routeId: selectedRoute,
+      distance,
+      costPerKm,
       totalCost,
-      costPerKm: totalCost / distance,
-      costPerKg: totalCost / Number(cargoItem.weight),
+      calculatedAt: new Date(),
     };
     
     setCalculation(result);
   };
 
   const handleCalculate = () => {
-    if (!selectedVehicle || !selectedRoute || !selectedCargo) {
+    if (!selectedVehicle || !selectedRoute) {
       toast({
         title: "Seleções incompletas",
-        description: "Por favor, selecione um veículo, rota e carga para calcular.",
+        description: "Por favor, selecione um veículo e rota para calcular.",
         variant: "destructive",
       });
       return;
@@ -191,7 +158,6 @@ export default function Calculator() {
   const resetCalculation = () => {
     setSelectedVehicle("");
     setSelectedRoute("");
-    setSelectedCargo("");
     setCalculation(null);
   };
 
@@ -271,47 +237,6 @@ export default function Calculator() {
                 </Select>
               </div>
 
-              {/* Cargo Selection */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  Carga
-                </Label>
-                <Select value={selectedCargo} onValueChange={setSelectedCargo}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma carga" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cargo.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        Nenhuma carga disponível
-                      </SelectItem>
-                    ) : (
-                      cargo.map((cargoItem) => (
-                        <SelectItem key={cargoItem.id} value={cargoItem.id}>
-                          {cargoItem.name} - {cargoItem.weight} kg
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Fuel Price */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Fuel className="h-4 w-4" />
-                  Preço do Combustível (R$/L)
-                </Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={fuelPrice}
-                  onChange={(e) => setFuelPrice(e.target.value)}
-                  placeholder="Ex: 5.50"
-                />
-              </div>
 
               <Separator />
 
@@ -329,7 +254,7 @@ export default function Calculator() {
           </Card>
 
           {/* Quick Info */}
-          {(selectedVehicle || selectedRoute || selectedCargo) && (
+          {(selectedVehicle || selectedRoute) && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Resumo da Simulação</CardTitle>
@@ -348,14 +273,6 @@ export default function Calculator() {
                     <span className="text-muted-foreground">Rota:</span>
                     <span className="font-medium">
                       {routes.find(r => r.id === selectedRoute)?.name}
-                    </span>
-                  </div>
-                )}
-                {selectedCargo && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Carga:</span>
-                    <span className="font-medium">
-                      {cargo.find(c => c.id === selectedCargo)?.name}
                     </span>
                   </div>
                 )}
@@ -379,6 +296,12 @@ export default function Calculator() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Calculation ID */}
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm text-muted-foreground">ID do Cálculo</div>
+                    <div className="font-mono text-sm">{calculation.id}</div>
+                  </div>
+
                   {/* Total Cost - Highlight */}
                   <div className="p-4 bg-primary/10 rounded-lg border">
                     <div className="flex items-center justify-between">
@@ -394,64 +317,44 @@ export default function Calculator() {
                   {/* Detailed Breakdown */}
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Custo de Combustível:</span>
-                      <span className="font-medium">
-                        R$ {calculation.fuelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </span>
+                      <span className="text-muted-foreground">ID do Veículo:</span>
+                      <span className="font-mono text-sm">{calculation.vehicleId}</span>
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Custo de Manutenção:</span>
-                      <span className="font-medium">
-                        R$ {calculation.maintenanceCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </span>
+                      <span className="text-muted-foreground">ID da Rota:</span>
+                      <span className="font-mono text-sm">{calculation.routeId}</span>
                     </div>
 
                     <Separator />
 
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Distância Total:</span>
-                      <span className="font-medium">{calculation.totalDistance} km</span>
+                      <span className="text-muted-foreground">Distância (km):</span>
+                      <span className="font-medium">{calculation.distance} km</span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tempo Estimado:</span>
-                      <span className="font-medium">{calculation.totalTime}h</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Peso da Carga:</span>
-                      <span className="font-medium">{calculation.cargoWeight} kg</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valor da Carga:</span>
+                      <span className="text-muted-foreground">Custo por km:</span>
                       <span className="font-medium">
-                        R$ {calculation.cargoValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        R$ {calculation.costPerKm.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Calculado em:</span>
+                      <span className="font-medium">
+                        {calculation.calculatedAt.toLocaleString('pt-BR')}
                       </span>
                     </div>
                   </div>
 
                   <Separator />
 
-                  {/* KPIs */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Indicadores</h4>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 bg-accent/50 rounded-lg">
-                        <div className="text-sm text-muted-foreground">Custo por km</div>
-                        <div className="font-medium">
-                          R$ {calculation.costPerKm.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </div>
-                      </div>
-                      
-                      <div className="p-3 bg-accent/50 rounded-lg">
-                        <div className="text-sm text-muted-foreground">Custo por kg</div>
-                        <div className="font-medium">
-                          R$ {calculation.costPerKg.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </div>
-                      </div>
+                  {/* Formula Display */}
+                  <div className="p-3 bg-accent/50 rounded-lg">
+                    <div className="text-sm text-muted-foreground mb-2">Fórmula</div>
+                    <div className="font-medium">
+                      {calculation.distance} km × R$ {calculation.costPerKm.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} = R$ {calculation.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                 </CardContent>
@@ -460,22 +363,17 @@ export default function Calculator() {
               {/* Analysis Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Análise do Transporte</CardTitle>
+                  <CardTitle className="text-lg">Análise do Cálculo</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">
-                      Eficiência: {calculation.costPerKm < 2 ? "Alta" : calculation.costPerKm < 4 ? "Média" : "Baixa"}
+                      Custo: {calculation.costPerKm < 1 ? "Baixo" : calculation.costPerKm < 3 ? "Médio" : "Alto"}
                     </Badge>
                   </div>
                   
                   <p className="text-sm text-muted-foreground">
-                    {calculation.costPerKm < 2 
-                      ? "Excelente custo-benefício para esta simulação de transporte."
-                      : calculation.costPerKm < 4 
-                      ? "Custo razoável, considere otimizações na rota ou veículo."
-                      : "Custo elevado, revise as configurações para maior eficiência."
-                    }
+                    Cálculo baseado na fórmula: Distância × Custo por km do veículo selecionado.
                   </p>
                 </CardContent>
               </Card>
@@ -488,7 +386,7 @@ export default function Calculator() {
                   <div>
                     <h3 className="font-medium">Pronto para Calcular</h3>
                     <p className="text-sm text-muted-foreground mt-2">
-                      Selecione um veículo, rota e carga para ver os custos calculados
+                      Selecione um veículo e rota para ver os custos calculados
                     </p>
                   </div>
                 </div>
