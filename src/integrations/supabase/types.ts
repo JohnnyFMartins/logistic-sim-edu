@@ -122,6 +122,42 @@ export type Database = {
         }
         Relationships: []
       }
+      trips: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          route_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          route_id: string
+          start_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          route_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string
+        }
+        Relationships: []
+      }
       vehicles: {
         Row: {
           capacity: number

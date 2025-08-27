@@ -11,6 +11,7 @@ import Vehicles from "./pages/Vehicles";
 import RoutesPage from "./pages/RoutesPage";
 import Cargo from "./pages/Cargo";
 import Calculator from "./pages/Calculator";
+import TripPlanning from "./pages/TripPlanning";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
@@ -60,6 +61,13 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Calculator />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/trip-planning" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <TripPlanning />
                 </AppLayout>
               </ProtectedRoute>
             } />

@@ -4,6 +4,7 @@ import {
   Route, 
   Package, 
   Calculator, 
+  Calendar,
   BarChart3, 
   Home,
   Users,
@@ -30,6 +31,7 @@ const mainItems = [
   { title: "Rotas", url: "/routes", icon: Route },
   { title: "Cargas", url: "/cargo", icon: Package },
   { title: "Calcular Custos", url: "/calculator", icon: Calculator },
+  { title: "Planejamento de Viagens", url: "/trip-planning", icon: Calendar },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
 ]
 
