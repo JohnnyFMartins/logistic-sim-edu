@@ -15,14 +15,14 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, MapPin, Clock } from 'lucide-react';
 
-const routeFormSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  origin: z.string().min(1, 'Origem é obrigatória'),
-  destination: z.string().min(1, 'Destino é obrigatório'),
-  distance: z.string().min(1, 'Distância é obrigatória').refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Distância deve ser um número positivo'),
-  estimated_time: z.string().min(1, 'Tempo estimado é obrigatório').refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Tempo deve ser um número positivo'),
-  status: z.enum(['active', 'inactive'])
-});
+  const routeFormSchema = z.object({
+    name: z.string().min(1, 'Nome é obrigatório'),
+    origin: z.string().min(1, 'Origem é obrigatória'),
+    destination: z.string().min(1, 'Destino é obrigatório'),
+    distance: z.string().min(1, 'Distância é obrigatória').refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Distância deve ser um número positivo'),
+    estimated_time: z.string().min(1, 'Tempo estimado é obrigatório').refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Tempo deve ser um número positivo'),
+    status: z.enum(['active', 'inactive'])
+  });
 
 type RouteFormData = z.infer<typeof routeFormSchema>;
 
@@ -94,7 +94,7 @@ export default function RoutesPage() {
         origin: data.origin,
         destination: data.destination,
         distance: parseFloat(data.distance),
-        estimated_time: parseInt(data.estimated_time),
+        estimated_time: parseFloat(data.estimated_time),
         status: data.status,
         user_id: user.id
       };
@@ -144,7 +144,7 @@ export default function RoutesPage() {
     form.setValue('origin', route.origin);
     form.setValue('destination', route.destination);
     form.setValue('distance', route.distance.toString());
-    form.setValue('estimated_time', route.estimated_time.toString());
+    form.setValue('estimated_time', (route.estimated_time / 60).toFixed(1));
     form.setValue('status', route.status);
     setIsDialogOpen(true);
   };
@@ -281,9 +281,15 @@ export default function RoutesPage() {
                     name="estimated_time"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tempo (min)</FormLabel>
+                        <FormLabel>Tempo (horas)</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="45" {...field} />
+                          <Input 
+                            type="number" 
+                            step="0.1"
+                            placeholder="2.5" 
+                            value={field.value ? (parseFloat(field.value) / 60).toFixed(1) : ''}
+                            onChange={(e) => field.onChange((parseFloat(e.target.value || '0') * 60).toString())}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -399,9 +405,9 @@ export default function RoutesPage() {
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-2xl font-bold text-primary">{route.estimated_time}</p>
+                      <p className="text-2xl font-bold text-primary">{(route.estimated_time / 60).toFixed(1)}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">min</p>
+                    <p className="text-xs text-muted-foreground">horas</p>
                   </div>
                 </div>
               </CardContent>

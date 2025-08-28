@@ -30,6 +30,7 @@ import {
 interface Vehicle {
   id: string;
   model: string;
+  vehicle_type: string;
   plate: string;
   consumption: number;
   maintenance_cost: number;
@@ -76,9 +77,9 @@ export default function Calculator() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("vehicles")
-        .select("*")
+        .select("id, model, vehicle_type, plate, consumption, maintenance_cost, capacity")
         .eq("user_id", user.id)
-        .eq("status", "active")
+        .eq("status", "available")
         .order("model");
       
       if (error) throw error;
@@ -94,7 +95,7 @@ export default function Calculator() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("routes")
-        .select("*")
+        .select("id, name, origin, destination, distance, estimated_time")
         .eq("user_id", user.id)
         .eq("status", "active")
         .order("name");
@@ -203,7 +204,7 @@ export default function Calculator() {
                     ) : (
                       vehicles.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.model} - {vehicle.plate} ({vehicle.consumption} km/L)
+                          {vehicle.vehicle_type} {vehicle.model} - {vehicle.plate}
                         </SelectItem>
                       ))
                     )}
@@ -229,7 +230,7 @@ export default function Calculator() {
                     ) : (
                       routes.map((route) => (
                         <SelectItem key={route.id} value={route.id}>
-                          {route.name} - {route.distance} km
+                          {route.name} ({route.distance} km - {(route.estimated_time / 60).toFixed(1)}h)
                         </SelectItem>
                       ))
                     )}

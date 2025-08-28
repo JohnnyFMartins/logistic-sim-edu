@@ -61,6 +61,7 @@ interface Trip {
 interface Vehicle {
   id: string;
   model: string;
+  vehicle_type: string;
   plate: string;
 }
 
@@ -70,6 +71,7 @@ interface Route {
   origin: string;
   destination: string;
   distance: number;
+  estimated_time: number;
 }
 
 export default function TripPlanning() {
@@ -116,9 +118,9 @@ export default function TripPlanning() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("vehicles")
-        .select("id, model, plate")
+        .select("id, model, vehicle_type, plate")
         .eq("user_id", user.id)
-        .eq("status", "active")
+        .eq("status", "available")
         .order("model");
       
       if (error) throw error;
@@ -134,7 +136,7 @@ export default function TripPlanning() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("routes")
-        .select("id, name, origin, destination, distance")
+        .select("id, name, origin, destination, distance, estimated_time")
         .eq("user_id", user.id)
         .eq("status", "active")
         .order("name");
@@ -334,7 +336,7 @@ export default function TripPlanning() {
 
   const getVehicleName = (vehicleId: string) => {
     const vehicle = vehicles.find(v => v.id === vehicleId);
-    return vehicle ? `${vehicle.model} - ${vehicle.plate}` : 'Veículo não encontrado';
+    return vehicle ? `${vehicle.vehicle_type} ${vehicle.model} - ${vehicle.plate}` : 'Veículo não encontrado';
   };
 
   const getRouteName = (routeId: string) => {
@@ -396,7 +398,7 @@ export default function TripPlanning() {
                     ) : (
                       vehicles.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.model} - {vehicle.plate}
+                          {vehicle.vehicle_type} {vehicle.model} - {vehicle.plate}
                         </SelectItem>
                       ))
                     )}
@@ -422,7 +424,7 @@ export default function TripPlanning() {
                     ) : (
                       routes.map((route) => (
                         <SelectItem key={route.id} value={route.id}>
-                          {route.name} ({route.distance} km)
+                          {route.name} ({route.distance} km - {(route.estimated_time / 60).toFixed(1)}h)
                         </SelectItem>
                       ))
                     )}

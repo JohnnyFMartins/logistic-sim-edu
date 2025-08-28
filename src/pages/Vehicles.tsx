@@ -13,6 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -34,11 +41,12 @@ interface Vehicle {
   user_id?: string
   plate: string
   model: string
+  vehicle_type: string
   year: number
   consumption: number // km/l
-  capacity: number // kg
+  capacity: number // kg (convertido para toneladas na exibição)
   maintenance_cost: number // R$/km
-  status: 'active' | 'maintenance' | 'inactive'
+  status: 'available' | 'maintenance' | 'in_use'
   created_at?: string
   updated_at?: string
 }
@@ -53,6 +61,7 @@ const Vehicles = () => {
   const [formData, setFormData] = useState({
     plate: '',
     model: '',
+    vehicle_type: '',
     year: '',
     consumption: '',
     capacity: '',
@@ -81,7 +90,7 @@ const Vehicles = () => {
       // Map database fields to component interface
       const mappedVehicles: Vehicle[] = data?.map(vehicle => ({
         ...vehicle,
-        status: vehicle.status as 'active' | 'maintenance' | 'inactive'
+        status: vehicle.status as 'available' | 'maintenance' | 'in_use'
       })) || []
       
       setVehicles(mappedVehicles)
@@ -117,11 +126,12 @@ const Vehicles = () => {
             user_id: user.id,
             plate: formData.plate,
             model: formData.model,
+            vehicle_type: formData.vehicle_type,
             year: parseInt(formData.year),
             consumption: parseFloat(formData.consumption),
             capacity: parseInt(formData.capacity),
             maintenance_cost: parseFloat(formData.maintenanceCost),
-            status: 'active'
+            status: 'available'
           }
         ])
         .select()
@@ -131,13 +141,14 @@ const Vehicles = () => {
       // Map and add to local state
       const newVehicle: Vehicle = {
         ...data[0],
-        status: data[0].status as 'active' | 'maintenance' | 'inactive'
+        status: data[0].status as 'available' | 'maintenance' | 'in_use'
       }
       setVehicles([newVehicle, ...vehicles])
       
       setFormData({
         plate: '',
         model: '',
+        vehicle_type: '',
         year: '',
         consumption: '',
         capacity: '',
@@ -163,6 +174,7 @@ const Vehicles = () => {
     setFormData({
       plate: vehicle.plate,
       model: vehicle.model,
+      vehicle_type: vehicle.vehicle_type,
       year: vehicle.year.toString(),
       consumption: vehicle.consumption.toString(),
       capacity: vehicle.capacity.toString(),
@@ -181,6 +193,7 @@ const Vehicles = () => {
         .update({
           plate: formData.plate,
           model: formData.model,
+          vehicle_type: formData.vehicle_type,
           year: parseInt(formData.year),
           consumption: parseFloat(formData.consumption),
           capacity: parseInt(formData.capacity),
@@ -194,13 +207,14 @@ const Vehicles = () => {
       // Map and update local state
       const updatedVehicle: Vehicle = {
         ...data[0],
-        status: data[0].status as 'active' | 'maintenance' | 'inactive'
+        status: data[0].status as 'available' | 'maintenance' | 'in_use'
       }
       
       setVehicles(vehicles.map(v => v.id === editingVehicle.id ? updatedVehicle : v))
       setFormData({
         plate: '',
         model: '',
+        vehicle_type: '',
         year: '',
         consumption: '',
         capacity: '',
@@ -249,12 +263,12 @@ const Vehicles = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
-        return <Badge variant="default" className="bg-success text-success-foreground">Ativo</Badge>
+      case 'available':
+        return <Badge variant="default" className="bg-success text-success-foreground">Disponível</Badge>
       case 'maintenance':
-        return <Badge variant="destructive">Manutenção</Badge>
-      case 'inactive':
-        return <Badge variant="secondary">Inativo</Badge>
+        return <Badge variant="destructive">Em Manutenção</Badge>
+      case 'in_use':
+        return <Badge variant="secondary">Em Uso</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
@@ -324,6 +338,24 @@ const Vehicles = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle_type">Tipo de Veículo</Label>
+                <Select
+                  value={formData.vehicle_type}
+                  onValueChange={(value) => setFormData({ ...formData, vehicle_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Caminhão">Caminhão</SelectItem>
+                    <SelectItem value="Van">Van</SelectItem>
+                    <SelectItem value="Carreta">Carreta</SelectItem>
+                    <SelectItem value="Truck">Truck</SelectItem>
+                    <SelectItem value="Utilitário">Utilitário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="consumption">Consumo (km/l)</Label>
@@ -339,14 +371,15 @@ const Vehicles = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="capacity">Capacidade (kg)</Label>
+                  <Label htmlFor="capacity">Capacidade (toneladas)</Label>
                   <Input
                     id="capacity"
                     type="number"
-                    min="1000"
-                    placeholder="40000"
-                    value={formData.capacity}
-                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                    step="0.1"
+                    min="1"
+                    placeholder="40"
+                    value={formData.capacity ? (parseInt(formData.capacity) / 1000).toString() : ''}
+                    onChange={(e) => setFormData({ ...formData, capacity: (parseFloat(e.target.value || '0') * 1000).toString() })}
                     required
                   />
                 </div>
@@ -421,6 +454,24 @@ const Vehicles = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-vehicle_type">Tipo de Veículo</Label>
+                <Select
+                  value={formData.vehicle_type}
+                  onValueChange={(value) => setFormData({ ...formData, vehicle_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Caminhão">Caminhão</SelectItem>
+                    <SelectItem value="Van">Van</SelectItem>
+                    <SelectItem value="Carreta">Carreta</SelectItem>
+                    <SelectItem value="Truck">Truck</SelectItem>
+                    <SelectItem value="Utilitário">Utilitário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-consumption">Consumo (km/l)</Label>
@@ -436,14 +487,15 @@ const Vehicles = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-capacity">Capacidade (kg)</Label>
+                  <Label htmlFor="edit-capacity">Capacidade (toneladas)</Label>
                   <Input
                     id="edit-capacity"
                     type="number"
-                    min="1000"
-                    placeholder="40000"
-                    value={formData.capacity}
-                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                    step="0.1"
+                    min="1"
+                    placeholder="40"
+                    value={formData.capacity ? (parseInt(formData.capacity) / 1000).toString() : ''}
+                    onChange={(e) => setFormData({ ...formData, capacity: (parseFloat(e.target.value || '0') * 1000).toString() })}
                     required
                   />
                 </div>
@@ -499,7 +551,7 @@ const Vehicles = () => {
                 {getStatusBadge(vehicle.status)}
               </div>
               <CardDescription className="font-medium text-base">
-                {vehicle.model} • {vehicle.year}
+                {vehicle.vehicle_type} • {vehicle.model} • {vehicle.year}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -515,7 +567,7 @@ const Vehicles = () => {
                   <Weight className="h-4 w-4 text-success" />
                   <div>
                     <p className="text-muted-foreground">Capacidade</p>
-                    <p className="font-medium">{vehicle.capacity.toLocaleString()} kg</p>
+                    <p className="font-medium">{(vehicle.capacity / 1000).toFixed(1)} ton</p>
                   </div>
                 </div>
               </div>
