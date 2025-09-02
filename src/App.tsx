@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { AuthProvider } from "@/hooks/useAuth";
+import { RoleProvider } from "@/hooks/useRole";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
@@ -15,6 +16,8 @@ import TripPlanning from "./pages/TripPlanning";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import Simulations from "./pages/Simulations";
+import Parameters from "./pages/Parameters";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -23,7 +26,8 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
+      <RoleProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -85,6 +89,20 @@ const App = () => (
                 </AppLayout>
               </ProtectedRoute>
             } />
+            <Route path="/simulations" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Simulations />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/parameters" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Parameters />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <AppLayout>
@@ -97,8 +115,9 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+    </RoleProvider>
+  </AuthProvider>
+</QueryClientProvider>
 );
 
 export default App;

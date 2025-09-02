@@ -1,8 +1,10 @@
 
 import { MetricCard } from "@/components/MetricCard"
+import { AdminSetup } from "@/components/AdminSetup"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
+import { useRole } from "@/hooks/useRole"
 import { 
   Truck, 
   Route, 
@@ -11,21 +13,27 @@ import {
   TrendingUp, 
   Users,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Play,
+  BarChart3
 } from "lucide-react"
 
 const Index = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { role, canRead } = useRole();
 
   return (
     <div className="space-y-6">
+      {/* Admin Setup for first user */}
+      <AdminSetup />
+
       {/* Welcome Section */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">
-          Dashboard TMS Educacional
+          TMS Didático — SENAI
         </h1>
         <p className="text-muted-foreground">
-          Sistema de gestão de transporte para fins educacionais - Acompanhe suas simulações e aprenda logística na prática.
+          Sistema educacional de gestão de transporte para ensino de logística - Aprenda através de simulações práticas.
         </p>
       </div>
 
@@ -98,19 +106,41 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-warning/20 bg-warning/5">
+        <Card className="border-success/20 bg-success/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-warning" />
-              Calcular Custos
+              <Play className="h-5 w-5 text-success" />
+              Simulações
             </CardTitle>
             <CardDescription>
-              Simule custos de transporte e compare diferentes cenários
+              Execute simulações de transporte e aprenda logística na prática
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="secondary" className="w-full" onClick={() => navigate('/calculator')}>
-              Calcular
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/simulations')}>
+              Nova Simulação
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="border-warning/20 bg-warning/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-warning" />
+              Relatórios
+            </CardTitle>
+            <CardDescription>
+              Gere relatórios detalhados das suas simulações e análises
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="secondary" 
+              className="w-full" 
+              onClick={() => navigate('/reports')}
+              disabled={!canRead('reports')}
+            >
+              Ver Relatórios
             </Button>
           </CardContent>
         </Card>

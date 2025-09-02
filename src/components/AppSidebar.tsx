@@ -2,11 +2,11 @@ import { useState } from "react"
 import { 
   Truck, 
   Route, 
-  Package, 
   Calculator, 
   Calendar,
+  Play,
   BarChart3, 
-  Home,
+  LayoutDashboard,
   Users,
   Settings
 } from "lucide-react"
@@ -26,18 +26,18 @@ import {
 } from "@/components/ui/sidebar"
 
 const mainItems = [
-  { title: "Dashboard", url: "/", icon: Home },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Veículos", url: "/vehicles", icon: Truck },
   { title: "Rotas", url: "/routes", icon: Route },
-  { title: "Cargas", url: "/cargo", icon: Package },
-  { title: "Calcular Custos", url: "/calculator", icon: Calculator },
-  { title: "Planejamento de Viagens", url: "/trip-planning", icon: Calendar },
-  { title: "Relatórios", url: "/reports", icon: BarChart3 },
+  { title: "Custos", url: "/calculator", icon: Calculator },
+  { title: "Viagens", url: "/trip-planning", icon: Calendar },
+  { title: "Simulações", url: "/simulations", icon: Play },
 ]
 
 const managementItems = [
+  { title: "Relatórios", url: "/reports", icon: BarChart3 },
+  { title: "Parâmetros", url: "/parameters", icon: Settings },
   { title: "Usuários", url: "/users", icon: Users },
-  { title: "Configurações", url: "/settings", icon: Settings },
 ]
 
 export function AppSidebar() {
@@ -61,14 +61,14 @@ export function AppSidebar() {
               <Truck className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-bold text-lg text-sidebar-foreground">TMS Edu</h2>
+              <h2 className="font-bold text-lg text-sidebar-foreground">TMS Didático — SENAI</h2>
               <p className="text-xs text-sidebar-foreground/60">Sistema Educacional</p>
             </div>
           </div>
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/70 font-semibold text-xs uppercase tracking-wide">Principais</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/70 font-semibold text-xs uppercase tracking-wide">Sistema</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (

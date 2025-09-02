@@ -67,7 +67,7 @@ export default function Auth() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">
-            Sistema TMS
+            TMS Didático — SENAI
           </CardTitle>
           <CardDescription>
             Faça login ou crie sua conta para acessar o sistema
