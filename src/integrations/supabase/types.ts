@@ -86,39 +86,72 @@ export type Database = {
       routes: {
         Row: {
           created_at: string
-          destination: string
-          distance: number
-          estimated_time: number
+          destino: string
+          distancia_km: number
           id: string
-          name: string
-          origin: string
-          status: string
+          origem: string
+          tempo_estimado_h: number
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          destination: string
-          distance: number
-          estimated_time: number
+          destino: string
+          distancia_km: number
           id?: string
-          name: string
-          origin: string
-          status?: string
+          origem: string
+          tempo_estimado_h: number
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          destination?: string
-          distance?: number
-          estimated_time?: number
+          destino?: string
+          distancia_km?: number
           id?: string
-          name?: string
-          origin?: string
-          status?: string
+          origem?: string
+          tempo_estimado_h?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      routes_backup: {
+        Row: {
+          created_at: string | null
+          destination: string | null
+          distance: number | null
+          estimated_time: number | null
+          id: string | null
+          name: string | null
+          origin: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          destination?: string | null
+          distance?: number | null
+          estimated_time?: number | null
+          id?: string | null
+          name?: string | null
+          origin?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          destination?: string | null
+          distance?: number | null
+          estimated_time?: number | null
+          id?: string | null
+          name?: string | null
+          origin?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -184,46 +217,82 @@ export type Database = {
       }
       vehicles: {
         Row: {
-          capacity: number
-          consumption: number
+          capacidade_ton: number
           created_at: string
+          custo_por_km: number
           id: string
-          maintenance_cost: number
-          model: string
-          plate: string
+          km_por_litro: number
           status: string
+          tipo: string
           updated_at: string
           user_id: string
-          vehicle_type: string
-          year: number
         }
         Insert: {
-          capacity: number
-          consumption: number
+          capacidade_ton: number
           created_at?: string
+          custo_por_km: number
           id?: string
-          maintenance_cost: number
-          model: string
-          plate: string
+          km_por_litro: number
           status?: string
+          tipo: string
           updated_at?: string
           user_id: string
-          vehicle_type?: string
-          year: number
         }
         Update: {
-          capacity?: number
-          consumption?: number
+          capacidade_ton?: number
           created_at?: string
+          custo_por_km?: number
           id?: string
-          maintenance_cost?: number
-          model?: string
-          plate?: string
+          km_por_litro?: number
           status?: string
+          tipo?: string
           updated_at?: string
           user_id?: string
-          vehicle_type?: string
-          year?: number
+        }
+        Relationships: []
+      }
+      vehicles_backup: {
+        Row: {
+          capacity: number | null
+          consumption: number | null
+          created_at: string | null
+          id: string | null
+          maintenance_cost: number | null
+          model: string | null
+          plate: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+          vehicle_type: string | null
+          year: number | null
+        }
+        Insert: {
+          capacity?: number | null
+          consumption?: number | null
+          created_at?: string | null
+          id?: string | null
+          maintenance_cost?: number | null
+          model?: string | null
+          plate?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_type?: string | null
+          year?: number | null
+        }
+        Update: {
+          capacity?: number | null
+          consumption?: number | null
+          created_at?: string | null
+          id?: string | null
+          maintenance_cost?: number | null
+          model?: string | null
+          plate?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_type?: string | null
+          year?: number | null
         }
         Relationships: []
       }
