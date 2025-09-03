@@ -116,45 +116,6 @@ export type Database = {
         }
         Relationships: []
       }
-      routes_backup: {
-        Row: {
-          created_at: string | null
-          destination: string | null
-          distance: number | null
-          estimated_time: number | null
-          id: string | null
-          name: string | null
-          origin: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          destination?: string | null
-          distance?: number | null
-          estimated_time?: number | null
-          id?: string | null
-          name?: string | null
-          origin?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          destination?: string | null
-          distance?: number | null
-          estimated_time?: number | null
-          id?: string | null
-          name?: string | null
-          origin?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       trips: {
         Row: {
           created_at: string
@@ -248,51 +209,6 @@ export type Database = {
           tipo?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      vehicles_backup: {
-        Row: {
-          capacity: number | null
-          consumption: number | null
-          created_at: string | null
-          id: string | null
-          maintenance_cost: number | null
-          model: string | null
-          plate: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-          vehicle_type: string | null
-          year: number | null
-        }
-        Insert: {
-          capacity?: number | null
-          consumption?: number | null
-          created_at?: string | null
-          id?: string | null
-          maintenance_cost?: number | null
-          model?: string | null
-          plate?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          vehicle_type?: string | null
-          year?: number | null
-        }
-        Update: {
-          capacity?: number | null
-          consumption?: number | null
-          created_at?: string | null
-          id?: string | null
-          maintenance_cost?: number | null
-          model?: string | null
-          plate?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          vehicle_type?: string | null
-          year?: number | null
         }
         Relationships: []
       }

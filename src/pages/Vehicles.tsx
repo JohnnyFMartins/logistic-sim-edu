@@ -31,51 +31,56 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Truck, Plus, Edit, Trash2, Fuel, Weight } from "lucide-react"
+import { Truck, Plus, Edit, Trash2, Search, Filter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
+import { useRole } from "@/hooks/useRole"
+import { RoleProtectedRoute } from "@/components/RoleProtectedRoute"
+
+type VehicleStatus = 'Disponível' | 'Em_Manutenção' | 'Em_Uso'
 
 interface Vehicle {
   id: string
-  user_id?: string
-  plate: string
-  model: string
-  vehicle_type: string
-  year: number
-  consumption: number // km/l
-  capacity: number // kg (convertido para toneladas na exibição)
-  maintenance_cost: number // R$/km
-  status: 'available' | 'maintenance' | 'in_use'
-  created_at?: string
-  updated_at?: string
+  user_id: string
+  tipo: string
+  capacidade_ton: number
+  custo_por_km: number
+  km_por_litro: number
+  status: VehicleStatus
+  created_at: string
+  updated_at: string
 }
-
 
 const Vehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('')
   const [formData, setFormData] = useState({
-    plate: '',
-    model: '',
-    vehicle_type: '',
-    year: '',
-    consumption: '',
-    capacity: '',
-    maintenanceCost: ''
+    tipo: '',
+    capacidade_ton: '',
+    custo_por_km: '',
+    km_por_litro: '',
+    status: 'Disponível' as VehicleStatus
   })
   const { toast } = useToast()
   const { user } = useAuth()
+  const { canCreate, canUpdate, canDelete } = useRole()
 
-  // Fetch vehicles on component mount
   useEffect(() => {
     if (user) {
       fetchVehicles()
     }
   }, [user])
+
+  useEffect(() => {
+    filterVehicles()
+  }, [vehicles, searchTerm, statusFilter])
 
   const fetchVehicles = async () => {
     try {
@@ -86,14 +91,10 @@ const Vehicles = () => {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      
-      // Map database fields to component interface
-      const mappedVehicles: Vehicle[] = data?.map(vehicle => ({
+      setVehicles((data || []).map(vehicle => ({
         ...vehicle,
-        status: vehicle.status as 'available' | 'maintenance' | 'in_use'
-      })) || []
-      
-      setVehicles(mappedVehicles)
+        status: vehicle.status as VehicleStatus
+      })))
     } catch (error) {
       console.error('Error fetching vehicles:', error)
       toast({
@@ -104,6 +105,22 @@ const Vehicles = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const filterVehicles = () => {
+    let filtered = vehicles
+
+    if (searchTerm) {
+      filtered = filtered.filter(vehicle =>
+        vehicle.tipo.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    if (statusFilter) {
+      filtered = filtered.filter(vehicle => vehicle.status === statusFilter)
+    }
+
+    setFilteredVehicles(filtered)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,41 +141,27 @@ const Vehicles = () => {
         .insert([
           {
             user_id: user.id,
-            plate: formData.plate,
-            model: formData.model,
-            vehicle_type: formData.vehicle_type,
-            year: parseInt(formData.year),
-            consumption: parseFloat(formData.consumption),
-            capacity: parseInt(formData.capacity),
-            maintenance_cost: parseFloat(formData.maintenanceCost),
-            status: 'available'
+            tipo: formData.tipo,
+            capacidade_ton: parseFloat(formData.capacidade_ton),
+            custo_por_km: parseFloat(formData.custo_por_km),
+            km_por_litro: parseFloat(formData.km_por_litro),
+            status: formData.status
           }
         ])
         .select()
 
       if (error) throw error
 
-      // Map and add to local state
-      const newVehicle: Vehicle = {
-        ...data[0],
-        status: data[0].status as 'available' | 'maintenance' | 'in_use'
+      if (data) {
+        const newVehicle = { ...data[0], status: data[0].status as VehicleStatus }
+        setVehicles([newVehicle, ...vehicles])
+        resetForm()
+        setIsDialogOpen(false)
+        toast({
+          title: "Veículo cadastrado",
+          description: "O veículo foi adicionado com sucesso à frota.",
+        })
       }
-      setVehicles([newVehicle, ...vehicles])
-      
-      setFormData({
-        plate: '',
-        model: '',
-        vehicle_type: '',
-        year: '',
-        consumption: '',
-        capacity: '',
-        maintenanceCost: ''
-      })
-      setIsDialogOpen(false)
-      toast({
-        title: "Veículo cadastrado",
-        description: "O veículo foi adicionado com sucesso à frota.",
-      })
     } catch (error) {
       console.error('Error creating vehicle:', error)
       toast({
@@ -172,13 +175,11 @@ const Vehicles = () => {
   const handleEdit = (vehicle: Vehicle) => {
     setEditingVehicle(vehicle)
     setFormData({
-      plate: vehicle.plate,
-      model: vehicle.model,
-      vehicle_type: vehicle.vehicle_type,
-      year: vehicle.year.toString(),
-      consumption: vehicle.consumption.toString(),
-      capacity: vehicle.capacity.toString(),
-      maintenanceCost: vehicle.maintenance_cost?.toString() || ''
+      tipo: vehicle.tipo,
+      capacidade_ton: vehicle.capacidade_ton.toString(),
+      custo_por_km: vehicle.custo_por_km.toString(),
+      km_por_litro: vehicle.km_por_litro.toString(),
+      status: vehicle.status
     })
     setIsEditDialogOpen(true)
   }
@@ -191,41 +192,28 @@ const Vehicles = () => {
       const { data, error } = await supabase
         .from('vehicles')
         .update({
-          plate: formData.plate,
-          model: formData.model,
-          vehicle_type: formData.vehicle_type,
-          year: parseInt(formData.year),
-          consumption: parseFloat(formData.consumption),
-          capacity: parseInt(formData.capacity),
-          maintenance_cost: parseFloat(formData.maintenanceCost)
+          tipo: formData.tipo,
+          capacidade_ton: parseFloat(formData.capacidade_ton),
+          custo_por_km: parseFloat(formData.custo_por_km),
+          km_por_litro: parseFloat(formData.km_por_litro),
+          status: formData.status
         })
         .eq('id', editingVehicle.id)
         .select()
 
       if (error) throw error
 
-      // Map and update local state
-      const updatedVehicle: Vehicle = {
-        ...data[0],
-        status: data[0].status as 'available' | 'maintenance' | 'in_use'
+      if (data) {
+        const updatedVehicle = { ...data[0], status: data[0].status as VehicleStatus }
+        setVehicles(vehicles.map(v => v.id === editingVehicle.id ? updatedVehicle : v))
+        resetForm()
+        setIsEditDialogOpen(false)
+        setEditingVehicle(null)
+        toast({
+          title: "Veículo atualizado",
+          description: "As informações do veículo foram atualizadas com sucesso.",
+        })
       }
-      
-      setVehicles(vehicles.map(v => v.id === editingVehicle.id ? updatedVehicle : v))
-      setFormData({
-        plate: '',
-        model: '',
-        vehicle_type: '',
-        year: '',
-        consumption: '',
-        capacity: '',
-        maintenanceCost: ''
-      })
-      setIsEditDialogOpen(false)
-      setEditingVehicle(null)
-      toast({
-        title: "Veículo atualizado",
-        description: "As informações do veículo foram atualizadas com sucesso.",
-      })
     } catch (error) {
       console.error('Error updating vehicle:', error)
       toast({
@@ -249,7 +237,6 @@ const Vehicles = () => {
       toast({
         title: "Veículo removido",
         description: "O veículo foi removido da frota.",
-        variant: "destructive",
       })
     } catch (error) {
       console.error('Error deleting vehicle:', error)
@@ -261,384 +248,286 @@ const Vehicles = () => {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const resetForm = () => {
+    setFormData({
+      tipo: '',
+      capacidade_ton: '',
+      custo_por_km: '',
+      km_por_litro: '',
+      status: 'Disponível'
+    })
+  }
+
+  const getStatusBadge = (status: VehicleStatus) => {
     switch (status) {
-      case 'available':
-        return <Badge variant="default" className="bg-success text-success-foreground">Disponível</Badge>
-      case 'maintenance':
+      case 'Disponível':
+        return <Badge className="bg-success/20 text-success-foreground border-success/30">Disponível</Badge>
+      case 'Em_Manutenção':
         return <Badge variant="destructive">Em Manutenção</Badge>
-      case 'in_use':
+      case 'Em_Uso':
         return <Badge variant="secondary">Em Uso</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+  const VehicleForm = ({ onSubmit, isEdit = false }: { onSubmit: (e: React.FormEvent) => void, isEdit?: boolean }) => (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="tipo">Tipo de Veículo</Label>
+        <Input
+          id="tipo"
+          placeholder="Ex: Caminhão, Van, Carreta"
+          value={formData.tipo}
+          onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+          required
+        />
+      </div>
+      
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="capacidade_ton">Capacidade (ton)</Label>
+          <Input
+            id="capacidade_ton"
+            type="number"
+            step="0.01"
+            min="0.1"
+            placeholder="40.00"
+            value={formData.capacidade_ton}
+            onChange={(e) => setFormData({ ...formData, capacidade_ton: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="custo_por_km">Custo/km (R$)</Label>
+          <Input
+            id="custo_por_km"
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0.85"
+            value={formData.custo_por_km}
+            onChange={(e) => setFormData({ ...formData, custo_por_km: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="km_por_litro">Km/litro</Label>
+          <Input
+            id="km_por_litro"
+            type="number"
+            step="0.01"
+            min="0.1"
+            placeholder="3.20"
+            value={formData.km_por_litro}
+            onChange={(e) => setFormData({ ...formData, km_por_litro: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="status">Status</Label>
+        <Select value={formData.status} onValueChange={(value: VehicleStatus) => setFormData({ ...formData, status: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Disponível">Disponível</SelectItem>
+            <SelectItem value="Em_Manutenção">Em Manutenção</SelectItem>
+            <SelectItem value="Em_Uso">Em Uso</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="secondary" onClick={() => {
+          resetForm()
+          setIsDialogOpen(false)
+          setIsEditDialogOpen(false)
+          setEditingVehicle(null)
+        }}>
+          Cancelar
+        </Button>
+        <Button type="submit">
+          {isEdit ? 'Atualizar' : 'Cadastrar'} Veículo
+        </Button>
+      </DialogFooter>
+    </form>
+  )
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <Truck className="h-8 w-8 text-primary" />
             Gestão de Veículos
           </h1>
-          <p className="text-muted-foreground">
-            Cadastre e gerencie a frota de veículos para suas simulações de transporte.
-          </p>
+          <p className="text-muted-foreground">Carregando veículos...</p>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Veículo
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Cadastrar Novo Veículo</DialogTitle>
-              <DialogDescription>
-                Preencha as informações do veículo para adicionar à frota.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="plate">Placa</Label>
-                  <Input
-                    id="plate"
-                    placeholder="ABC-1234"
-                    value={formData.plate}
-                    onChange={(e) => setFormData({ ...formData, plate: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="year">Ano</Label>
-                  <Input
-                    id="year"
-                    type="number"
-                    min="1990"
-                    max="2024"
-                    placeholder="2020"
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="model">Modelo</Label>
-                <Input
-                  id="model"
-                  placeholder="Volvo FH-460"
-                  value={formData.model}
-                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle_type">Tipo de Veículo</Label>
-                <Select
-                  value={formData.vehicle_type}
-                  onValueChange={(value) => setFormData({ ...formData, vehicle_type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Caminhão">Caminhão</SelectItem>
-                    <SelectItem value="Van">Van</SelectItem>
-                    <SelectItem value="Carreta">Carreta</SelectItem>
-                    <SelectItem value="Truck">Truck</SelectItem>
-                    <SelectItem value="Utilitário">Utilitário</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="consumption">Consumo (km/l)</Label>
-                  <Input
-                    id="consumption"
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    placeholder="3.2"
-                    value={formData.consumption}
-                    onChange={(e) => setFormData({ ...formData, consumption: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="capacity">Capacidade (toneladas)</Label>
-                  <Input
-                    id="capacity"
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    placeholder="40"
-                    value={formData.capacity ? (parseInt(formData.capacity) / 1000).toString() : ''}
-                    onChange={(e) => setFormData({ ...formData, capacity: (parseFloat(e.target.value || '0') * 1000).toString() })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maintenanceCost">Manutenção (R$/km)</Label>
-                  <Input
-                    id="maintenanceCost"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.85"
-                    value={formData.maintenanceCost}
-                    onChange={(e) => setFormData({ ...formData, maintenanceCost: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="secondary" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">
-                  Cadastrar Veículo
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+      </div>
+    )
+  }
 
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Editar Veículo</DialogTitle>
-              <DialogDescription>
-                Altere as informações do veículo {editingVehicle?.plate}.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-plate">Placa</Label>
-                  <Input
-                    id="edit-plate"
-                    placeholder="ABC-1234"
-                    value={formData.plate}
-                    onChange={(e) => setFormData({ ...formData, plate: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-year">Ano</Label>
-                  <Input
-                    id="edit-year"
-                    type="number"
-                    min="1990"
-                    max="2024"
-                    placeholder="2020"
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-model">Modelo</Label>
-                <Input
-                  id="edit-model"
-                  placeholder="Volvo FH-460"
-                  value={formData.model}
-                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-vehicle_type">Tipo de Veículo</Label>
-                <Select
-                  value={formData.vehicle_type}
-                  onValueChange={(value) => setFormData({ ...formData, vehicle_type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Caminhão">Caminhão</SelectItem>
-                    <SelectItem value="Van">Van</SelectItem>
-                    <SelectItem value="Carreta">Carreta</SelectItem>
-                    <SelectItem value="Truck">Truck</SelectItem>
-                    <SelectItem value="Utilitário">Utilitário</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-consumption">Consumo (km/l)</Label>
-                  <Input
-                    id="edit-consumption"
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    placeholder="3.2"
-                    value={formData.consumption}
-                    onChange={(e) => setFormData({ ...formData, consumption: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-capacity">Capacidade (toneladas)</Label>
-                  <Input
-                    id="edit-capacity"
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    placeholder="40"
-                    value={formData.capacity ? (parseInt(formData.capacity) / 1000).toString() : ''}
-                    onChange={(e) => setFormData({ ...formData, capacity: (parseFloat(e.target.value || '0') * 1000).toString() })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-maintenanceCost">Manutenção (R$/km)</Label>
-                  <Input
-                    id="edit-maintenanceCost"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.85"
-                    value={formData.maintenanceCost}
-                    onChange={(e) => setFormData({ ...formData, maintenanceCost: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="secondary" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancelar
+  return (
+    <div className="space-y-6">
+      {/* Header com busca e filtros */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <Truck className="h-8 w-8 text-primary" />
+              Gestão de Veículos
+            </h1>
+            <p className="text-muted-foreground">
+              Cadastre e gerencie a frota de veículos para suas simulações de transporte.
+            </p>
+          </div>
+          
+          <RoleProtectedRoute requiredPermission={{ action: 'create', entity: 'vehicles' }}>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Veículo
                 </Button>
-                <Button type="submit">
-                  Salvar Alterações
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Cadastrar Novo Veículo</DialogTitle>
+                  <DialogDescription>
+                    Preencha as informações do veículo para adicionar à frota.
+                  </DialogDescription>
+                </DialogHeader>
+                <VehicleForm onSubmit={handleSubmit} />
+              </DialogContent>
+            </Dialog>
+          </RoleProtectedRoute>
+        </div>
+
+        {/* Barra de busca e filtros */}
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Buscar por tipo de veículo..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-48">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrar por status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="Disponível">Disponível</SelectItem>
+              <SelectItem value="Em_Manutenção">Em Manutenção</SelectItem>
+              <SelectItem value="Em_Uso">Em Uso</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Vehicle Cards */}
-      {isLoading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-muted-foreground">Carregando veículos...</div>
-        </div>
-      ) : vehicles.length === 0 ? (
-        <div className="text-center py-8">
-          <Truck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Nenhum veículo cadastrado</h3>
-          <p className="text-muted-foreground mb-4">
-            Comece cadastrando seu primeiro veículo para gerenciar sua frota.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {vehicles.map((vehicle) => (
-          <Card key={vehicle.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">
-                  {vehicle.plate}
-                </CardTitle>
-                {getStatusBadge(vehicle.status)}
-              </div>
-              <CardDescription className="font-medium text-base">
-                {vehicle.vehicle_type} • {vehicle.model} • {vehicle.year}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Fuel className="h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-muted-foreground">Consumo</p>
-                    <p className="font-medium">{vehicle.consumption} km/l</p>
+      {/* Lista de veículos */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {filteredVehicles.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <Truck className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">
+              {vehicles.length === 0 ? 'Nenhum veículo cadastrado' : 'Nenhum veículo encontrado'}
+            </h3>
+            <p className="text-muted-foreground">
+              {vehicles.length === 0 
+                ? 'Clique em "Novo Veículo" para começar.' 
+                : 'Tente ajustar os filtros de busca.'
+              }
+            </p>
+          </div>
+        ) : (
+          filteredVehicles.map((vehicle) => (
+            <Card key={vehicle.id} className="relative">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg">{vehicle.tipo}</CardTitle>
+                    {getStatusBadge(vehicle.status)}
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Weight className="h-4 w-4 text-success" />
-                  <div>
-                    <p className="text-muted-foreground">Capacidade</p>
-                    <p className="font-medium">{(vehicle.capacity / 1000).toFixed(1)} ton</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="pt-2 border-t">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Custo manutenção:</span>
-                  <span className="font-medium">R$ {vehicle.maintenance_cost}/km</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  className="flex-1"
-                  onClick={() => handleEdit(vehicle)}
-                >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Editar
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja excluir o veículo {vehicle.plate}? 
-                        Esta ação não pode ser desfeita.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDelete(vehicle.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  <div className="flex gap-2">
+                    <RoleProtectedRoute requiredPermission={{ action: 'update', entity: 'vehicles' }}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(vehicle)}
                       >
-                        Excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </CardContent>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </RoleProtectedRoute>
+                    <RoleProtectedRoute requiredPermission={{ action: 'delete', entity: 'vehicles' }}>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir o veículo "{vehicle.tipo}"? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(vehicle.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </RoleProtectedRoute>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">{vehicle.capacidade_ton}</p>
+                    <p className="text-xs text-muted-foreground">toneladas</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">{vehicle.km_por_litro}</p>
+                    <p className="text-xs text-muted-foreground">km/litro</p>
+                  </div>
+                </div>
+                
+                <div className="pt-2 border-t">
+                  <div className="text-center">
+                    <p className="text-lg font-semibold text-foreground">R$ {vehicle.custo_por_km.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">custo por km</p>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
-      {/* Educational Notes */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="text-lg">💡 Dica Educacional</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            <strong>Consumo de combustível:</strong> Um fator crucial nos custos operacionais. 
-            Veículos mais novos tendem a ter melhor eficiência energética. 
-            <br /><br />
-            <strong>Capacidade de carga:</strong> Determine a quantidade máxima de mercadoria que pode ser transportada. 
-            Considere sempre o peso bruto total combinado (PBTC) do veículo.
-            <br /><br />
-            <strong>Custo de manutenção:</strong> Varia conforme idade, marca e tipo de operação. 
-            Inclui peças, mão de obra, pneus e revisões preventivas.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Dialog de edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Veículo</DialogTitle>
+            <DialogDescription>
+              Altere as informações do veículo {editingVehicle?.tipo}.
+            </DialogDescription>
+          </DialogHeader>
+          <VehicleForm onSubmit={handleEditSubmit} isEdit />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

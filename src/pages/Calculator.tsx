@@ -29,21 +29,19 @@ import {
 
 interface Vehicle {
   id: string;
-  model: string;
-  vehicle_type: string;
-  plate: string;
-  consumption: number;
-  maintenance_cost: number;
-  capacity: number;
+  tipo: string;
+  capacidade_ton: number;
+  custo_por_km: number;
+  km_por_litro: number;
+  status: string;
 }
 
 interface RouteData {
   id: string;
-  name: string;
-  origin: string;
-  destination: string;
-  distance: number;
-  estimated_time: number;
+  origem: string;
+  destino: string;
+  distancia_km: number;
+  tempo_estimado_h: number;
 }
 
 interface Cargo {
@@ -77,10 +75,10 @@ export default function Calculator() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("vehicles")
-        .select("id, model, vehicle_type, plate, consumption, maintenance_cost, capacity")
+        .select("id, tipo, capacidade_ton, custo_por_km, km_por_litro, status")
         .eq("user_id", user.id)
-        .eq("status", "available")
-        .order("model");
+        .eq("status", "Disponível")
+        .order("tipo");
       
       if (error) throw error;
       return data as Vehicle[];
@@ -95,10 +93,9 @@ export default function Calculator() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("routes")
-        .select("id, name, origin, destination, distance, estimated_time")
+        .select("id, origem, destino, distancia_km, tempo_estimado_h")
         .eq("user_id", user.id)
-        .eq("status", "active")
-        .order("name");
+        .order("origem");
       
       if (error) throw error;
       return data as RouteData[];
@@ -120,8 +117,8 @@ export default function Calculator() {
     
     if (!vehicle || !route) return;
 
-    const distance = Number(route.distance);
-    const costPerKm = Number(vehicle.maintenance_cost); // Usando maintenance_cost como custo por km
+    const distance = Number(route.distancia_km);
+    const costPerKm = Number(vehicle.custo_por_km);
     
     // Cálculo simples: distância × custo por km
     const totalCost = distance * costPerKm;
@@ -204,7 +201,7 @@ export default function Calculator() {
                     ) : (
                       vehicles.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.vehicle_type} {vehicle.model} - {vehicle.plate}
+                          {vehicle.tipo} ({vehicle.capacidade_ton}t)
                         </SelectItem>
                       ))
                     )}
@@ -230,7 +227,7 @@ export default function Calculator() {
                     ) : (
                       routes.map((route) => (
                         <SelectItem key={route.id} value={route.id}>
-                          {route.name} ({route.distance} km - {(route.estimated_time / 60).toFixed(1)}h)
+                          {route.origem} → {route.destino} ({route.distancia_km} km - {route.tempo_estimado_h}h)
                         </SelectItem>
                       ))
                     )}
@@ -265,7 +262,7 @@ export default function Calculator() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Veículo:</span>
                     <span className="font-medium">
-                      {vehicles.find(v => v.id === selectedVehicle)?.model}
+                      {vehicles.find(v => v.id === selectedVehicle)?.tipo}
                     </span>
                   </div>
                 )}
@@ -273,7 +270,10 @@ export default function Calculator() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Rota:</span>
                     <span className="font-medium">
-                      {routes.find(r => r.id === selectedRoute)?.name}
+                      {(() => {
+                        const route = routes.find(r => r.id === selectedRoute);
+                        return route ? `${route.origem} → ${route.destino}` : '';
+                      })()}
                     </span>
                   </div>
                 )}

@@ -60,18 +60,17 @@ interface Trip {
 
 interface Vehicle {
   id: string;
-  model: string;
-  vehicle_type: string;
-  plate: string;
+  tipo: string;
+  capacidade_ton: number;
+  status: string;
 }
 
 interface Route {
   id: string;
-  name: string;
-  origin: string;
-  destination: string;
-  distance: number;
-  estimated_time: number;
+  origem: string;
+  destino: string;
+  distancia_km: number;
+  tempo_estimado_h: number;
 }
 
 export default function TripPlanning() {
@@ -118,10 +117,10 @@ export default function TripPlanning() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("vehicles")
-        .select("id, model, vehicle_type, plate")
+        .select("id, tipo, capacidade_ton, status")
         .eq("user_id", user.id)
-        .eq("status", "available")
-        .order("model");
+        .eq("status", "Disponível")
+        .order("tipo");
       
       if (error) throw error;
       return data as Vehicle[];
@@ -136,10 +135,9 @@ export default function TripPlanning() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("routes")
-        .select("id, name, origin, destination, distance, estimated_time")
+        .select("id, origem, destino, distancia_km, tempo_estimado_h")
         .eq("user_id", user.id)
-        .eq("status", "active")
-        .order("name");
+        .order("origem");
       
       if (error) throw error;
       return data as Route[];
@@ -336,12 +334,12 @@ export default function TripPlanning() {
 
   const getVehicleName = (vehicleId: string) => {
     const vehicle = vehicles.find(v => v.id === vehicleId);
-    return vehicle ? `${vehicle.vehicle_type} ${vehicle.model} - ${vehicle.plate}` : 'Veículo não encontrado';
+    return vehicle ? `${vehicle.tipo} (${vehicle.capacidade_ton}t)` : 'Veículo não encontrado';
   };
 
   const getRouteName = (routeId: string) => {
     const route = routes.find(r => r.id === routeId);
-    return route ? route.name : 'Rota não encontrada';
+    return route ? `${route.origem} → ${route.destino}` : 'Rota não encontrada';
   };
 
   if (isLoading) {
@@ -398,7 +396,7 @@ export default function TripPlanning() {
                     ) : (
                       vehicles.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.vehicle_type} {vehicle.model} - {vehicle.plate}
+                          {vehicle.tipo} ({vehicle.capacidade_ton}t)
                         </SelectItem>
                       ))
                     )}
@@ -424,7 +422,7 @@ export default function TripPlanning() {
                     ) : (
                       routes.map((route) => (
                         <SelectItem key={route.id} value={route.id}>
-                          {route.name} ({route.distance} km - {(route.estimated_time / 60).toFixed(1)}h)
+                          {route.origem} → {route.destino} ({route.distancia_km} km - {route.tempo_estimado_h}h)
                         </SelectItem>
                       ))
                     )}
