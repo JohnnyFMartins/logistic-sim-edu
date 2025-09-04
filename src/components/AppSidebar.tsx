@@ -8,7 +8,10 @@ import {
   BarChart3, 
   LayoutDashboard,
   Users,
-  Settings
+  Settings,
+  DollarSign,
+  TrendingUp,
+  MapPin
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -36,7 +39,10 @@ const mainItems = [
 
 const managementItems = [
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
-  { title: "Parâmetros", url: "/parameters", icon: Settings },
+  { title: "Custos Fixos", url: "/custos-fixos", icon: DollarSign },
+  { title: "Custos Variáveis", url: "/custos-variaveis", icon: TrendingUp },
+  { title: "Pedágios", url: "/pedagios", icon: MapPin },
+  { title: "Parâmetros", url: "/parametros-globais", icon: Settings },
   { title: "Usuários", url: "/users", icon: Users },
 ]
 

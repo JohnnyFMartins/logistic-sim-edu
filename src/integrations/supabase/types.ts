@@ -53,6 +53,126 @@ export type Database = {
         }
         Relationships: []
       }
+      custos_fixos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+          valor_mensal: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+          valor_mensal?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+          valor_mensal?: number
+        }
+        Relationships: []
+      }
+      custos_variaveis: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+          valor_por_km: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+          valor_por_km?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+          valor_por_km?: number
+        }
+        Relationships: []
+      }
+      parametros_globais: {
+        Row: {
+          created_at: string
+          id: string
+          moeda: string
+          preco_diesel_litro: number
+          updated_at: string
+          user_id: string
+          velocidade_media_kmh: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          moeda?: string
+          preco_diesel_litro?: number
+          updated_at?: string
+          user_id: string
+          velocidade_media_kmh?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          moeda?: string
+          preco_diesel_litro?: number
+          updated_at?: string
+          user_id?: string
+          velocidade_media_kmh?: number
+        }
+        Relationships: []
+      }
+      pedagios: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          rota_id: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          rota_id: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          rota_id?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

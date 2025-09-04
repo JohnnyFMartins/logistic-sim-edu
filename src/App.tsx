@@ -14,10 +14,14 @@ import Cargo from "./pages/Cargo";
 import Calculator from "./pages/Calculator";
 import TripPlanning from "./pages/TripPlanning";
 import Reports from "./pages/Reports";
-import Users from "./pages/Users";
-import Settings from "./pages/Settings";
-import Simulations from "./pages/Simulations";
-import Parameters from "./pages/Parameters";
+import Simulations from "@/pages/Simulations";
+import Settings from "@/pages/Settings";
+import Users from "@/pages/Users";
+import CustosFixos from "@/pages/CustosFixos";
+import CustosVariaveis from "@/pages/CustosVariaveis";
+import Pedagios from "@/pages/Pedagios";
+import ParametrosGlobais from "@/pages/ParametrosGlobais";
+import Parameters from "@/pages/Parameters";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -93,6 +97,34 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Simulations />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/custos-fixos" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CustosFixos />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/custos-variaveis" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CustosVariaveis />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/pedagios" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Pedagios />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/parametros-globais" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ParametrosGlobais />
                 </AppLayout>
               </ProtectedRoute>
             } />
