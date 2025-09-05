@@ -43,6 +43,7 @@ const managementItems = [
   { title: "Custos Variáveis", url: "/custos-variaveis", icon: TrendingUp },
   { title: "Pedágios", url: "/pedagios", icon: MapPin },
   { title: "Parâmetros", url: "/parametros-globais", icon: Settings },
+  { title: "Cálculos", url: "/calculos", icon: Calculator },
   { title: "Usuários", url: "/users", icon: Users },
 ]
 

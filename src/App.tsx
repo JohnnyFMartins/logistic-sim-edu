@@ -21,6 +21,7 @@ import CustosFixos from "@/pages/CustosFixos";
 import CustosVariaveis from "@/pages/CustosVariaveis";
 import Pedagios from "@/pages/Pedagios";
 import ParametrosGlobais from "@/pages/ParametrosGlobais";
+import Calculos from "@/pages/Calculos";
 import Parameters from "@/pages/Parameters";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -125,6 +126,13 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <ParametrosGlobais />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/calculos" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Calculos />
                 </AppLayout>
               </ProtectedRoute>
             } />

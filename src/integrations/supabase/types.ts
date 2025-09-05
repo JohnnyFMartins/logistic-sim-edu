@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      calculos: {
+        Row: {
+          created_at: string
+          custo_por_entrega: number
+          custo_por_km: number
+          custo_total: number
+          distancia_km: number
+          entregas_na_rota: number
+          id: string
+          rota_id: string
+          updated_at: string
+          user_id: string
+          veiculo_id: string
+        }
+        Insert: {
+          created_at?: string
+          custo_por_entrega?: number
+          custo_por_km?: number
+          custo_total?: number
+          distancia_km?: number
+          entregas_na_rota?: number
+          id?: string
+          rota_id: string
+          updated_at?: string
+          user_id: string
+          veiculo_id: string
+        }
+        Update: {
+          created_at?: string
+          custo_por_entrega?: number
+          custo_por_km?: number
+          custo_total?: number
+          distancia_km?: number
+          entregas_na_rota?: number
+          id?: string
+          rota_id?: string
+          updated_at?: string
+          user_id?: string
+          veiculo_id?: string
+        }
+        Relationships: []
+      }
       cargo: {
         Row: {
           created_at: string
