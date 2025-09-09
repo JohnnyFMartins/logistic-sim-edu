@@ -33,7 +33,7 @@ const mainItems = [
   { title: "Veículos", url: "/vehicles", icon: Truck },
   { title: "Rotas", url: "/routes", icon: Route },
   { title: "Custos", url: "/calculator", icon: Calculator },
-  { title: "Viagens", url: "/trip-planning", icon: Calendar },
+  { title: "Viagens", url: "/viagens", icon: Calendar },
   { title: "Simulações", url: "/simulations", icon: Play },
 ]
 

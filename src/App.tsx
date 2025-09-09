@@ -12,7 +12,7 @@ import Vehicles from "./pages/Vehicles";
 import RoutesPage from "./pages/RoutesPage";
 import Cargo from "./pages/Cargo";
 import Calculator from "./pages/Calculator";
-import TripPlanning from "./pages/TripPlanning";
+import Viagens from "./pages/Viagens";
 import Reports from "./pages/Reports";
 import Simulations from "@/pages/Simulations";
 import Settings from "@/pages/Settings";
@@ -22,6 +22,7 @@ import CustosVariaveis from "@/pages/CustosVariaveis";
 import Pedagios from "@/pages/Pedagios";
 import ParametrosGlobais from "@/pages/ParametrosGlobais";
 import Calculos from "@/pages/Calculos";
+import ViagemDetalhe from "@/pages/ViagemDetalhe";
 import Parameters from "@/pages/Parameters";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -73,10 +74,17 @@ const App = () => (
                 </AppLayout>
               </ProtectedRoute>
             } />
-            <Route path="/trip-planning" element={
+            <Route path="/viagens" element={
               <ProtectedRoute>
                 <AppLayout>
-                  <TripPlanning />
+                  <Viagens />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/viagens/:id" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ViagemDetalhe />
                 </AppLayout>
               </ProtectedRoute>
             } />

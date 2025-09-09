@@ -283,34 +283,43 @@ export type Database = {
           created_at: string
           end_date: string
           id: string
+          observacoes: string | null
+          peso_ton: number | null
           route_id: string
           start_date: string
           status: string
           updated_at: string
           user_id: string
           vehicle_id: string
+          volume_m3: number | null
         }
         Insert: {
           created_at?: string
           end_date: string
           id?: string
+          observacoes?: string | null
+          peso_ton?: number | null
           route_id: string
           start_date: string
           status?: string
           updated_at?: string
           user_id: string
           vehicle_id: string
+          volume_m3?: number | null
         }
         Update: {
           created_at?: string
           end_date?: string
           id?: string
+          observacoes?: string | null
+          peso_ton?: number | null
           route_id?: string
           start_date?: string
           status?: string
           updated_at?: string
           user_id?: string
           vehicle_id?: string
+          volume_m3?: number | null
         }
         Relationships: []
       }
