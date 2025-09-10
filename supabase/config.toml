@@ -1,1 +1,4 @@
 project_id = "dhrsfmwhlrbvpsorqeoz"
+
+[functions.recalcular-custos-viagem]
+verify_jwt = true

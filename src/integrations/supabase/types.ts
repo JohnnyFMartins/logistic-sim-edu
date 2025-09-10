@@ -280,7 +280,13 @@ export type Database = {
       }
       trips: {
         Row: {
+          consumo_combustivel_l: number | null
           created_at: string
+          custo_combustivel: number | null
+          custo_fixo_rateado: number | null
+          custo_pedagios: number | null
+          custo_total_estimado: number | null
+          custo_variaveis: number | null
           end_date: string
           id: string
           observacoes: string | null
@@ -288,13 +294,20 @@ export type Database = {
           route_id: string
           start_date: string
           status: string
+          tempo_estimado_h: number | null
           updated_at: string
           user_id: string
           vehicle_id: string
           volume_m3: number | null
         }
         Insert: {
+          consumo_combustivel_l?: number | null
           created_at?: string
+          custo_combustivel?: number | null
+          custo_fixo_rateado?: number | null
+          custo_pedagios?: number | null
+          custo_total_estimado?: number | null
+          custo_variaveis?: number | null
           end_date: string
           id?: string
           observacoes?: string | null
@@ -302,13 +315,20 @@ export type Database = {
           route_id: string
           start_date: string
           status?: string
+          tempo_estimado_h?: number | null
           updated_at?: string
           user_id: string
           vehicle_id: string
           volume_m3?: number | null
         }
         Update: {
+          consumo_combustivel_l?: number | null
           created_at?: string
+          custo_combustivel?: number | null
+          custo_fixo_rateado?: number | null
+          custo_pedagios?: number | null
+          custo_total_estimado?: number | null
+          custo_variaveis?: number | null
           end_date?: string
           id?: string
           observacoes?: string | null
@@ -316,6 +336,7 @@ export type Database = {
           route_id?: string
           start_date?: string
           status?: string
+          tempo_estimado_h?: number | null
           updated_at?: string
           user_id?: string
           vehicle_id?: string
