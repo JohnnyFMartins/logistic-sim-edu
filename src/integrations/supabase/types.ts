@@ -278,6 +278,84 @@ export type Database = {
         }
         Relationships: []
       }
+      simulacoes: {
+        Row: {
+          consumo_combustivel_l: number | null
+          created_at: string
+          custo_combustivel: number | null
+          custo_fixo_rateado: number | null
+          custo_pedagios: number | null
+          custo_por_entrega: number | null
+          custo_por_tonelada_km: number | null
+          custo_total: number | null
+          custo_var_extra_por_km: number | null
+          custo_variaveis: number | null
+          entregas_na_rota: number | null
+          id: string
+          km_por_litro: number | null
+          margem: number | null
+          nome_cenario: string
+          ocupacao_pct: number | null
+          pedagios_extra: number | null
+          preco_diesel_litro: number | null
+          tempo_estimado_h: number | null
+          updated_at: string
+          user_id: string
+          velocidade_media_kmh: number | null
+          viagem_base_id: string
+        }
+        Insert: {
+          consumo_combustivel_l?: number | null
+          created_at?: string
+          custo_combustivel?: number | null
+          custo_fixo_rateado?: number | null
+          custo_pedagios?: number | null
+          custo_por_entrega?: number | null
+          custo_por_tonelada_km?: number | null
+          custo_total?: number | null
+          custo_var_extra_por_km?: number | null
+          custo_variaveis?: number | null
+          entregas_na_rota?: number | null
+          id?: string
+          km_por_litro?: number | null
+          margem?: number | null
+          nome_cenario: string
+          ocupacao_pct?: number | null
+          pedagios_extra?: number | null
+          preco_diesel_litro?: number | null
+          tempo_estimado_h?: number | null
+          updated_at?: string
+          user_id: string
+          velocidade_media_kmh?: number | null
+          viagem_base_id: string
+        }
+        Update: {
+          consumo_combustivel_l?: number | null
+          created_at?: string
+          custo_combustivel?: number | null
+          custo_fixo_rateado?: number | null
+          custo_pedagios?: number | null
+          custo_por_entrega?: number | null
+          custo_por_tonelada_km?: number | null
+          custo_total?: number | null
+          custo_var_extra_por_km?: number | null
+          custo_variaveis?: number | null
+          entregas_na_rota?: number | null
+          id?: string
+          km_por_litro?: number | null
+          margem?: number | null
+          nome_cenario?: string
+          ocupacao_pct?: number | null
+          pedagios_extra?: number | null
+          preco_diesel_litro?: number | null
+          tempo_estimado_h?: number | null
+          updated_at?: string
+          user_id?: string
+          velocidade_media_kmh?: number | null
+          viagem_base_id?: string
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           consumo_combustivel_l: number | null
@@ -291,6 +369,7 @@ export type Database = {
           id: string
           observacoes: string | null
           peso_ton: number | null
+          receita: number | null
           route_id: string
           start_date: string
           status: string
@@ -312,6 +391,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           peso_ton?: number | null
+          receita?: number | null
           route_id: string
           start_date: string
           status?: string
@@ -333,6 +413,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           peso_ton?: number | null
+          receita?: number | null
           route_id?: string
           start_date?: string
           status?: string

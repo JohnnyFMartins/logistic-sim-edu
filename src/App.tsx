@@ -14,7 +14,9 @@ import Cargo from "./pages/Cargo";
 import Calculator from "./pages/Calculator";
 import Viagens from "./pages/Viagens";
 import Reports from "./pages/Reports";
-import Simulations from "@/pages/Simulations";
+import Simulations from "./pages/Simulations";
+import SimulationCreate from "./pages/SimulationCreate";
+import SimulationCompare from "./pages/SimulationCompare";
 import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
 import CustosFixos from "@/pages/CustosFixos";
@@ -106,6 +108,20 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Simulations />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/simulations/create" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <SimulationCreate />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/simulations/compare/:id" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <SimulationCompare />
                 </AppLayout>
               </ProtectedRoute>
             } />
