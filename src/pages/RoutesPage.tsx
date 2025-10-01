@@ -6,11 +6,12 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Edit, Trash2, MapPin, Clock, Search, Route } from 'lucide-react'
+import { Plus, Edit, Trash2, MapPin, Clock, Search, Route, Upload, Download } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { useRole } from '@/hooks/useRole'
 import { RoleProtectedRoute } from '@/components/RoleProtectedRoute'
+import { CSVImportDialog } from '@/components/CSVImportDialog'
 
 interface Route {
   id: string
@@ -31,6 +32,7 @@ export default function RoutesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingRoute, setEditingRoute] = useState<Route | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [importOpen, setImportOpen] = useState(false)
   const [formData, setFormData] = useState({
     origem: '',
     destino: '',
@@ -207,6 +209,28 @@ export default function RoutesPage() {
     })
   }
 
+  const handleImport = async (data: any[]) => {
+    if (!user) return
+    const routesToInsert = data.map(r => ({ ...r, user_id: user.id }))
+    const { error } = await supabase.from('routes').insert(routesToInsert)
+    if (error) throw error
+    fetchRoutes()
+  }
+
+  const handleExport = () => {
+    const csv = [
+      ['Origem', 'Destino', 'Distância (km)', 'Tempo (h)'].join(','),
+      ...routes.map(r => [r.origem, r.destino, r.distancia_km, r.tempo_estimado_h].join(','))
+    ].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `rotas-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    toast({ title: "Exportado", description: "Rotas exportadas com sucesso" })
+  }
+
   const RouteForm = ({ onSubmit, isEdit = false }: { onSubmit: (e: React.FormEvent) => void, isEdit?: boolean }) => (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -307,23 +331,33 @@ export default function RoutesPage() {
           </div>
           
           <RoleProtectedRoute requiredPermission={{ action: 'create', entity: 'routes' }}>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Rota
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Nova Rota</DialogTitle>
-                  <DialogDescription>
-                    Adicione uma nova rota ao sistema.
-                  </DialogDescription>
-                </DialogHeader>
-                <RouteForm onSubmit={handleSubmit} />
-              </DialogContent>
-            </Dialog>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Importar CSV
+              </Button>
+              <Button variant="outline" onClick={handleExport}>
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Rota
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Nova Rota</DialogTitle>
+                    <DialogDescription>
+                      Adicione uma nova rota ao sistema.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <RouteForm onSubmit={handleSubmit} />
+                </DialogContent>
+              </Dialog>
+            </div>
           </RoleProtectedRoute>
         </div>
 
@@ -443,6 +477,13 @@ export default function RoutesPage() {
           <RouteForm onSubmit={handleEditSubmit} isEdit />
         </DialogContent>
       </Dialog>
+
+      <CSVImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        type="routes"
+        onImport={handleImport}
+      />
     </div>
   )
 }

@@ -31,12 +31,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Truck, Plus, Edit, Trash2, Search, Filter } from "lucide-react"
+import { Truck, Plus, Edit, Trash2, Search, Filter, Upload, Download } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
 import { useRole } from "@/hooks/useRole"
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute"
+import { CSVImportDialog } from "@/components/CSVImportDialog"
 
 type VehicleStatus = 'Disponível' | 'Em_Manutenção' | 'Em_Uso'
 
@@ -61,6 +62,7 @@ const Vehicles = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [importOpen, setImportOpen] = useState(false)
   const [formData, setFormData] = useState({
     tipo: '',
     capacidade_ton: '',
@@ -258,6 +260,43 @@ const Vehicles = () => {
     })
   }
 
+  const handleImport = async (data: any[]) => {
+    if (!user) return
+    
+    const vehiclesToInsert = data.map(vehicle => ({
+      ...vehicle,
+      user_id: user.id
+    }))
+
+    const { error } = await supabase
+      .from('vehicles')
+      .insert(vehiclesToInsert)
+
+    if (error) throw error
+    fetchVehicles()
+  }
+
+  const handleExport = () => {
+    const csv = [
+      ['Tipo', 'Capacidade (ton)', 'Custo/KM', 'KM/Litro', 'Status'].join(','),
+      ...vehicles.map(v => 
+        [v.tipo, v.capacidade_ton, v.custo_por_km, v.km_por_litro, v.status].join(',')
+      )
+    ].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `veiculos-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    
+    toast({
+      title: "Exportado",
+      description: "Veículos exportados com sucesso"
+    })
+  }
+
   const getStatusBadge = (status: VehicleStatus) => {
     switch (status) {
       case 'Disponível':
@@ -386,23 +425,33 @@ const Vehicles = () => {
           </div>
           
           <RoleProtectedRoute requiredPermission={{ action: 'create', entity: 'vehicles' }}>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Novo Veículo
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Cadastrar Novo Veículo</DialogTitle>
-                  <DialogDescription>
-                    Preencha as informações do veículo para adicionar à frota.
-                  </DialogDescription>
-                </DialogHeader>
-                <VehicleForm onSubmit={handleSubmit} />
-              </DialogContent>
-            </Dialog>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Importar CSV
+              </Button>
+              <Button variant="outline" onClick={handleExport}>
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Novo Veículo
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Cadastrar Novo Veículo</DialogTitle>
+                    <DialogDescription>
+                      Preencha as informações do veículo para adicionar à frota.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <VehicleForm onSubmit={handleSubmit} />
+                </DialogContent>
+              </Dialog>
+            </div>
           </RoleProtectedRoute>
         </div>
 
@@ -528,6 +577,13 @@ const Vehicles = () => {
           <VehicleForm onSubmit={handleEditSubmit} isEdit />
         </DialogContent>
       </Dialog>
+
+      <CSVImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        type="vehicles"
+        onImport={handleImport}
+      />
     </div>
   )
 }
