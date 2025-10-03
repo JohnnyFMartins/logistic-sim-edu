@@ -6,15 +6,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, Save, FileText, Calculator, Plus, BarChart3 } from "lucide-react";
+import { Play, Save, FileText, Calculator, Plus, BarChart3, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Simulations() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast: toastHook } = useToast();
   const [simulations, setSimulations] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -75,6 +77,43 @@ export default function Simulations() {
     }).format(value);
   };
 
+  const exportToCSV = () => {
+    if (simulations.length === 0) {
+      toastHook({
+        title: "Nenhum dado",
+        description: "Não há simulações para exportar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = ['Cenário', 'Data Criação', 'Custo Total', 'Custo/Entrega', 'Tempo (h)', 'Status'];
+    const rows = simulations.map((sim: any) => [
+      sim.nome_cenario,
+      new Date(sim.created_at).toLocaleDateString('pt-BR'),
+      sim.custo_total || '',
+      sim.custo_por_entrega || '',
+      sim.tempo_estimado_h || '',
+      sim.custo_total !== null ? 'Concluída' : 'Pendente'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `simulacoes_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    toastHook({
+      title: "Exportado com sucesso",
+      description: "Arquivo CSV baixado.",
+    });
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -84,10 +123,16 @@ export default function Simulations() {
             Crie e execute simulações de transporte e custos
           </p>
         </div>
-        <Button className="gap-2" onClick={() => navigate("/simulations/create")}>
-          <Plus className="h-4 w-4" />
-          Nova Simulação
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Button className="gap-2" onClick={() => navigate("/simulations/create")}>
+            <Plus className="h-4 w-4" />
+            Nova Simulação
+          </Button>
+        </div>
       </div>
 
       {/* Simulação Rápida */}

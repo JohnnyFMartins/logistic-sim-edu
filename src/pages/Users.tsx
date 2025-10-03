@@ -2,51 +2,70 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Users as UsersIcon, Mail, Calendar, Shield } from "lucide-react";
+import { useRole } from "@/hooks/useRole";
+import { useToast } from "@/hooks/use-toast";
+import { Users as UsersIcon, Mail, Calendar, Shield, Edit2, Check, X } from "lucide-react";
 
-interface Profile {
+interface UserRole {
   id: string;
   user_id: string;
-  full_name: string | null;
-  role: string;
+  role: 'admin' | 'docente' | 'aluno';
   created_at: string;
-  updated_at: string;
 }
 
-interface UserWithAuth extends Profile {
+interface UserWithRole {
+  user_id: string;
   email?: string;
+  role: 'admin' | 'docente' | 'aluno';
+  role_id: string;
+  created_at: string;
 }
 
 export default function Users() {
   const { user } = useAuth();
-  const [profiles, setProfiles] = useState<UserWithAuth[]>([]);
+  const { role: currentUserRole } = useRole();
+  const { toast } = useToast();
+  const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [newRole, setNewRole] = useState<'admin' | 'docente' | 'aluno'>('aluno');
 
   useEffect(() => {
-    fetchProfiles();
-  }, []);
+    if (currentUserRole === 'admin') {
+      fetchUsers();
+    }
+  }, [currentUserRole]);
 
-  const fetchProfiles = async () => {
+  const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('id, user_id, role, created_at')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching profiles:', error);
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        toast({
+          title: "Erro ao carregar usuários",
+          description: rolesError.message,
+          variant: "destructive",
+        });
         return;
       }
 
-      // For demonstration, we'll add the current user's email to their profile
-      const profilesWithEmail = data?.map(profile => ({
-        ...profile,
-        email: profile.user_id === user?.id ? user?.email : undefined
+      const usersWithRoles = rolesData?.map(role => ({
+        user_id: role.user_id,
+        email: undefined, // Email não disponível via admin API
+        role: role.role as 'admin' | 'docente' | 'aluno',
+        role_id: role.id,
+        created_at: role.created_at
       })) || [];
 
-      setProfiles(profilesWithEmail);
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -54,16 +73,41 @@ export default function Users() {
     }
   };
 
+  const handleUpdateRole = async (userId: string, roleId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: newRole })
+        .eq('id', roleId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Papel atualizado",
+        description: "O papel do usuário foi atualizado com sucesso.",
+      });
+
+      setEditingUserId(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar papel",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'coordinator':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'driver':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'destructive';
+      case 'docente':
+        return 'default';
+      case 'aluno':
+        return 'secondary';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'secondary';
     }
   };
 
@@ -71,10 +115,10 @@ export default function Users() {
     switch (role) {
       case 'admin':
         return 'Administrador';
-      case 'coordinator':
-        return 'Coordenador';
-      case 'driver':
-        return 'Motorista';
+      case 'docente':
+        return 'Docente';
+      case 'aluno':
+        return 'Aluno';
       default:
         return 'Usuário';
     }
@@ -91,6 +135,17 @@ export default function Users() {
     }
     return email?.[0]?.toUpperCase() || 'U';
   };
+
+  if (currentUserRole !== 'admin') {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">Acesso Negado</h1>
+          <p className="text-muted-foreground">Você não tem permissão para acessar esta página.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -124,7 +179,7 @@ export default function Users() {
             <UsersIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profiles.length}</div>
+            <div className="text-2xl font-bold">{users.length}</div>
           </CardContent>
         </Card>
         
@@ -135,31 +190,31 @@ export default function Users() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {profiles.filter(p => p.role === 'admin').length}
+              {users.filter(u => u.role === 'admin').length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Coordenadores</CardTitle>
+            <CardTitle className="text-sm font-medium">Docentes</CardTitle>
             <UsersIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {profiles.filter(p => p.role === 'coordinator').length}
+              {users.filter(u => u.role === 'docente').length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Motoristas</CardTitle>
+            <CardTitle className="text-sm font-medium">Alunos</CardTitle>
             <UsersIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {profiles.filter(p => p.role === 'driver').length}
+              {users.filter(u => u.role === 'aluno').length}
             </div>
           </CardContent>
         </Card>
@@ -167,42 +222,83 @@ export default function Users() {
 
       {/* Users List */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {profiles.map((profile) => (
-          <Card key={profile.id} className="hover:shadow-md transition-shadow">
+        {users.map((userWithRole) => (
+          <Card key={userWithRole.user_id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
                     <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {getInitials(profile.full_name, profile.email)}
+                      {getInitials(null, userWithRole.email)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-1">
-                    <CardTitle className="text-base">
-                      {profile.full_name || 'Nome não informado'}
+                    <CardTitle className="text-base truncate">
+                      {userWithRole.email || 'Email não disponível'}
                     </CardTitle>
-                    <Badge 
-                      variant="outline" 
-                      className={getRoleColor(profile.role)}
-                    >
-                      {getRoleText(profile.role)}
-                    </Badge>
+                    {editingUserId === userWithRole.user_id ? (
+                      <div className="flex items-center gap-2">
+                        <Select value={newRole} onValueChange={(value: any) => setNewRole(value)}>
+                          <SelectTrigger className="h-7 w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="aluno">Aluno</SelectItem>
+                            <SelectItem value="docente">Docente</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleUpdateRole(userWithRole.user_id, userWithRole.role_id)}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 w-7 p-0"
+                          onClick={() => setEditingUserId(null)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Badge variant={getRoleColor(userWithRole.role)}>
+                          {getRoleText(userWithRole.role)}
+                        </Badge>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-6 w-6 p-0"
+                          onClick={() => {
+                            setEditingUserId(userWithRole.user_id);
+                            setNewRole(userWithRole.role);
+                          }}
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2 text-sm">
-                {profile.email && (
+                {userWithRole.email && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Mail className="h-4 w-4" />
-                    <span className="truncate">{profile.email}</span>
+                    <span className="truncate">{userWithRole.email}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    Cadastrado em {new Date(profile.created_at).toLocaleDateString('pt-BR')}
+                    Cadastrado em {new Date(userWithRole.created_at).toLocaleDateString('pt-BR')}
                   </span>
                 </div>
               </div>
@@ -211,7 +307,7 @@ export default function Users() {
         ))}
       </div>
 
-      {profiles.length === 0 && (
+      {users.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
             <UsersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

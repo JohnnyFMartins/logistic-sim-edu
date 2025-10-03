@@ -46,7 +46,9 @@ import {
   Eye,
   Filter,
   Weight,
-  Package
+  Package,
+  Download,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -420,6 +422,45 @@ export default function Viagens() {
     return route ? `${route.origem} → ${route.destino}` : 'Rota não encontrada';
   };
 
+  const exportToCSV = () => {
+    if (trips.length === 0) {
+      toast({
+        title: "Nenhum dado",
+        description: "Não há viagens para exportar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = ['Data Início', 'Data Fim', 'Veículo', 'Rota', 'Status', 'Peso (ton)', 'Volume (m³)', 'Observações'];
+    const rows = trips.map(trip => [
+      trip.start_date,
+      trip.end_date,
+      getVehicleName(trip.vehicle_id),
+      getRouteName(trip.route_id),
+      getStatusLabel(trip.status),
+      trip.peso_ton || '',
+      trip.volume_m3 || '',
+      trip.observacoes || ''
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `viagens_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    toast({
+      title: "Exportado com sucesso",
+      description: "Arquivo CSV baixado.",
+    });
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center p-8">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -437,14 +478,19 @@ export default function Viagens() {
           </p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Viagem
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Viagem
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>
                 {editingTrip ? 'Editar Viagem' : 'Nova Viagem'}
@@ -615,6 +661,7 @@ export default function Viagens() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}

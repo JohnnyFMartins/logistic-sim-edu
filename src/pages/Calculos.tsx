@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Calculator } from 'lucide-react';
+import { Plus, Edit, Trash2, Calculator, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Vehicle {
@@ -236,6 +236,44 @@ export default function Calculos() {
     setIsDialogOpen(true);
   };
 
+  const exportToCSV = () => {
+    if (calculos.length === 0) {
+      toast({
+        title: "Nenhum dado",
+        description: "Não há cálculos para exportar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = ['Veículo', 'Rota', 'Distância (km)', 'Custo/km', 'Entregas', 'Custo Total', 'Custo/Entrega'];
+    const rows = calculos.map(calculo => [
+      calculo.vehicles?.tipo || 'N/A',
+      calculo.routes ? `${calculo.routes.origem} → ${calculo.routes.destino}` : 'N/A',
+      calculo.distancia_km,
+      calculo.custo_por_km.toFixed(2),
+      calculo.entregas_na_rota,
+      calculo.custo_total.toFixed(2),
+      calculo.custo_por_entrega.toFixed(2)
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `calculos_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    toast({
+      title: "Exportado com sucesso",
+      description: "Arquivo CSV baixado.",
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -254,83 +292,89 @@ export default function Calculos() {
           </p>
         </div>
 
-        <RoleProtectedRoute requiredPermission={{ action: 'create', entity: 'calculos' }}>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openNewCalculoDialog}>
-                <Calculator className="mr-2 h-4 w-4" />
-                Calcular
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingCalculo ? 'Editar Cálculo' : 'Novo Cálculo'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingCalculo ? 'Edite os dados do cálculo.' : 'Crie um novo cálculo de custos.'}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="veiculo_id">Veículo</Label>
-                  <Select
-                    value={formData.veiculo_id}
-                    onValueChange={(value) => setFormData({ ...formData, veiculo_id: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um veículo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {vehicles.map((vehicle) => (
-                        <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.tipo} - R$ {vehicle.custo_por_km}/km
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="rota_id">Rota</Label>
-                  <Select
-                    value={formData.rota_id}
-                    onValueChange={(value) => setFormData({ ...formData, rota_id: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma rota" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {routes.map((route) => (
-                        <SelectItem key={route.id} value={route.id}>
-                          {route.origem} → {route.destino} ({route.distancia_km}km)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="entregas_na_rota">Entregas na Rota</Label>
-                  <Input
-                    id="entregas_na_rota"
-                    type="number"
-                    min="1"
-                    value={formData.entregas_na_rota}
-                    onChange={(e) => setFormData({ ...formData, entregas_na_rota: parseInt(e.target.value) || 1 })}
-                    required
-                  />
-                </div>
-
-                <Button type="submit" className="w-full">
-                  {editingCalculo ? 'Atualizar' : 'Calcular'}
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <RoleProtectedRoute requiredPermission={{ action: 'create', entity: 'calculos' }}>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={openNewCalculoDialog}>
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Calcular
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </RoleProtectedRoute>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingCalculo ? 'Editar Cálculo' : 'Novo Cálculo'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingCalculo ? 'Edite os dados do cálculo.' : 'Crie um novo cálculo de custos.'}
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="veiculo_id">Veículo</Label>
+                    <Select
+                      value={formData.veiculo_id}
+                      onValueChange={(value) => setFormData({ ...formData, veiculo_id: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um veículo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vehicles.map((vehicle) => (
+                          <SelectItem key={vehicle.id} value={vehicle.id}>
+                            {vehicle.tipo} - R$ {vehicle.custo_por_km}/km
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rota_id">Rota</Label>
+                    <Select
+                      value={formData.rota_id}
+                      onValueChange={(value) => setFormData({ ...formData, rota_id: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma rota" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {routes.map((route) => (
+                          <SelectItem key={route.id} value={route.id}>
+                            {route.origem} → {route.destino} ({route.distancia_km}km)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="entregas_na_rota">Entregas na Rota</Label>
+                    <Input
+                      id="entregas_na_rota"
+                      type="number"
+                      min="1"
+                      value={formData.entregas_na_rota}
+                      onChange={(e) => setFormData({ ...formData, entregas_na_rota: parseInt(e.target.value) || 1 })}
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full">
+                    {editingCalculo ? 'Atualizar' : 'Calcular'}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </RoleProtectedRoute>
+        </div>
       </div>
 
       <Card>
