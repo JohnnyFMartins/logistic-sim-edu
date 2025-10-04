@@ -466,13 +466,13 @@ const Vehicles = () => {
               className="pl-10"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
             <SelectTrigger className="w-48">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="Disponível">Disponível</SelectItem>
               <SelectItem value="Em_Manutenção">Em Manutenção</SelectItem>
               <SelectItem value="Em_Uso">Em Uso</SelectItem>
