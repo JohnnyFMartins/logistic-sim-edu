@@ -13,6 +13,7 @@ serve(async (req) => {
   }
 
   try {
+    // Create client with user auth for checking simulation ownership
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -21,6 +22,12 @@ serve(async (req) => {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
+    )
+
+    // Create service role client for fetching base trip (bypasses RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
     const { simulacao_id } = await req.json()
@@ -54,8 +61,8 @@ serve(async (req) => {
       )
     }
 
-    // Get base trip data with relations
-    const { data: viagem, error: viagemError } = await supabaseClient
+    // Get base trip data with relations using admin client (bypasses RLS)
+    const { data: viagem, error: viagemError } = await supabaseAdmin
       .from('trips')
       .select('*')
       .eq('id', simulacao.viagem_base_id)
@@ -72,8 +79,8 @@ serve(async (req) => {
       )
     }
 
-    // Get route data
-    const { data: rota, error: rotaError } = await supabaseClient
+    // Get route data using admin client
+    const { data: rota, error: rotaError } = await supabaseAdmin
       .from('routes')
       .select('*')
       .eq('id', viagem.route_id)
@@ -90,8 +97,8 @@ serve(async (req) => {
       )
     }
 
-    // Get vehicle data
-    const { data: veiculo, error: veiculoError } = await supabaseClient
+    // Get vehicle data using admin client
+    const { data: veiculo, error: veiculoError } = await supabaseAdmin
       .from('vehicles')
       .select('*')
       .eq('id', viagem.vehicle_id)
