@@ -208,13 +208,23 @@ export default function Viagens() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      // Automatically calculate trip costs
+      try {
+        await supabase.functions.invoke('recalcular-custos-viagem', {
+          body: { viagemId: data.id }
+        });
+      } catch (error) {
+        console.error('Erro ao calcular custos automaticamente:', error);
+        // Don't show error to user, as trip was created successfully
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["trips"] });
       resetForm();
       setIsDialogOpen(false);
       toast({
         title: "Viagem criada",
-        description: "A viagem foi planejada com sucesso.",
+        description: "A viagem foi planejada com sucesso e os custos foram calculados.",
       });
     },
     onError: (error: any) => {
@@ -251,13 +261,22 @@ export default function Viagens() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      // Automatically recalculate trip costs after update
+      try {
+        await supabase.functions.invoke('recalcular-custos-viagem', {
+          body: { viagemId: data.id }
+        });
+      } catch (error) {
+        console.error('Erro ao recalcular custos automaticamente:', error);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["trips"] });
       resetForm();
       setIsDialogOpen(false);
       toast({
         title: "Viagem atualizada",
-        description: "A viagem foi atualizada com sucesso.",
+        description: "A viagem foi atualizada com sucesso e os custos foram recalculados.",
       });
     },
     onError: (error: any) => {
