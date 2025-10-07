@@ -71,12 +71,11 @@ export default function SimulationCompare() {
       if (simError) throw simError;
       setSimulation(simData);
 
-      // Fetch base trip data
+      // Fetch base trip data (don't filter by user_id since trip may belong to another user)
       const { data: tripData, error: tripError } = await supabase
         .from("trips")
         .select("*")
         .eq("id", simData.viagem_base_id)
-        .eq("user_id", user?.id)
         .single();
 
       if (tripError) throw tripError;
