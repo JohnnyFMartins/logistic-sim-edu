@@ -41,17 +41,10 @@ serve(async (req) => {
 
     console.log('Recalculando custos para viagem:', viagemId)
 
-    // Get trip data with vehicle and route
+    // Get trip data
     const { data: trip, error: tripError } = await supabaseClient
       .from('trips')
-      .select(`
-        id,
-        vehicle_id,
-        route_id,
-        peso_ton,
-        vehicles!inner(km_por_litro, capacidade_ton),
-        routes!inner(distancia_km)
-      `)
+      .select('id, vehicle_id, route_id, peso_ton')
       .eq('id', viagemId)
       .eq('user_id', user.id)
       .single()
@@ -60,6 +53,36 @@ serve(async (req) => {
       console.error('Erro ao buscar viagem:', tripError)
       return new Response(
         JSON.stringify({ error: 'Viagem não encontrada' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Get vehicle data
+    const { data: vehicle, error: vehicleError } = await supabaseClient
+      .from('vehicles')
+      .select('km_por_litro, capacidade_ton')
+      .eq('id', trip.vehicle_id)
+      .single()
+
+    if (vehicleError || !vehicle) {
+      console.error('Erro ao buscar veículo:', vehicleError)
+      return new Response(
+        JSON.stringify({ error: 'Veículo não encontrado' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Get route data
+    const { data: route, error: routeError } = await supabaseClient
+      .from('routes')
+      .select('distancia_km')
+      .eq('id', trip.route_id)
+      .single()
+
+    if (routeError || !route) {
+      console.error('Erro ao buscar rota:', routeError)
+      return new Response(
+        JSON.stringify({ error: 'Rota não encontrada' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -125,8 +148,8 @@ serve(async (req) => {
     }
 
     // Perform calculations
-    const distanciaKm = Number(trip.routes.distancia_km) || 0
-    const kmPorLitro = Number(trip.vehicles.km_por_litro) || 1
+    const distanciaKm = Number(route.distancia_km) || 0
+    const kmPorLitro = Number(vehicle.km_por_litro) || 1
     const precoDieselLitro = Number(params.preco_diesel_litro) || 0
     const velocidadeMediaKmh = Number(params.velocidade_media_kmh) || 60
 
