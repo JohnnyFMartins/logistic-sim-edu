@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, Save, FileText, Calculator, Plus, BarChart3, Download } from "lucide-react";
+import { Play, Save, FileText, Calculator, Plus, BarChart3, Download, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -75,6 +75,23 @@ export default function Simulations() {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const deleteSimulation = async (simulationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("simulacoes")
+        .delete()
+        .eq("id", simulationId)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+      toast.success("Simulação excluída com sucesso!");
+      fetchSimulations(); // Refresh data
+    } catch (error) {
+      console.error("Error deleting simulation:", error);
+      toast.error("Erro ao excluir simulação");
+    }
   };
 
   const exportToCSV = () => {
@@ -226,6 +243,13 @@ export default function Simulations() {
                       onClick={() => runSimulation(simulation.id)}
                     >
                       <FileText className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => deleteSimulation(simulation.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
