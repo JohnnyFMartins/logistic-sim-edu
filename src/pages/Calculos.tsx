@@ -16,6 +16,7 @@ interface Vehicle {
   id: string;
   tipo: string;
   custo_por_km: number;
+  km_por_litro: number;
 }
 
 interface Route {
@@ -25,13 +26,43 @@ interface Route {
   distancia_km: number;
 }
 
+interface ParametrosGlobais {
+  preco_diesel_litro: number;
+  velocidade_media_kmh: number;
+}
+
+interface CustoFixo {
+  id: string;
+  nome: string;
+  valor_mensal: number;
+}
+
+interface CustoVariavel {
+  id: string;
+  nome: string;
+  valor_por_km: number;
+}
+
+interface Pedagio {
+  id: string;
+  descricao: string;
+  valor: number;
+}
+
 interface Calculo {
   id: string;
   veiculo_id: string;
   rota_id: string;
+  nome_cenario?: string;
   distancia_km: number;
   custo_por_km: number;
   entregas_na_rota: number;
+  consumo_combustivel_l: number;
+  custo_combustivel: number;
+  custo_variaveis: number;
+  custo_pedagios: number;
+  custo_fixo_rateado: number;
+  tempo_estimado_h: number;
   custo_total: number;
   custo_por_entrega: number;
   vehicles?: Vehicle;
@@ -47,9 +78,14 @@ export default function Calculos() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCalculo, setEditingCalculo] = useState<Calculo | null>(null);
+  const [parametrosGlobais, setParametrosGlobais] = useState<ParametrosGlobais | null>(null);
+  const [custosFixos, setCustosFixos] = useState<CustoFixo[]>([]);
+  const [custosVariaveis, setCustosVariaveis] = useState<CustoVariavel[]>([]);
+  const [pedagiosRota, setPedagiosRota] = useState<Pedagio[]>([]);
   const [formData, setFormData] = useState({
     veiculo_id: '',
     rota_id: '',
+    nome_cenario: '',
     entregas_na_rota: 1
   });
 
@@ -57,7 +93,16 @@ export default function Calculos() {
     fetchCalculos();
     fetchVehicles();
     fetchRoutes();
+    fetchParametrosGlobais();
+    fetchCustosFixos();
+    fetchCustosVariaveis();
   }, [user]);
+
+  useEffect(() => {
+    if (formData.rota_id) {
+      fetchPedagiosRota(formData.rota_id);
+    }
+  }, [formData.rota_id]);
 
   const fetchCalculos = async () => {
     if (!user) return;
@@ -83,7 +128,7 @@ export default function Calculos() {
       const routeIds = [...new Set(data.map(c => c.rota_id))];
 
       const [vehiclesResult, routesResult] = await Promise.all([
-        supabase.from('vehicles').select('id, tipo, custo_por_km').in('id', vehicleIds),
+        supabase.from('vehicles').select('id, tipo, custo_por_km, km_por_litro').in('id', vehicleIds),
         supabase.from('routes').select('id, origem, destino, distancia_km').in('id', routeIds)
       ]);
 
@@ -109,7 +154,7 @@ export default function Calculos() {
     
     const { data, error } = await supabase
       .from('vehicles')
-      .select('id, tipo, custo_por_km')
+      .select('id, tipo, custo_por_km, km_por_litro')
       .eq('user_id', user.id)
       .eq('status', 'Disponível');
 
@@ -137,15 +182,128 @@ export default function Calculos() {
     setRoutes(data || []);
   };
 
+  const fetchParametrosGlobais = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('parametros_globais')
+      .select('preco_diesel_litro, velocidade_media_kmh')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching parametros globais:', error);
+      return;
+    }
+
+    setParametrosGlobais(data);
+  };
+
+  const fetchCustosFixos = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('custos_fixos')
+      .select('id, nome, valor_mensal')
+      .eq('user_id', user.id)
+      .eq('ativo', true);
+
+    if (error) {
+      console.error('Error fetching custos fixos:', error);
+      return;
+    }
+
+    setCustosFixos(data || []);
+  };
+
+  const fetchCustosVariaveis = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('custos_variaveis')
+      .select('id, nome, valor_por_km')
+      .eq('user_id', user.id)
+      .eq('ativo', true);
+
+    if (error) {
+      console.error('Error fetching custos variaveis:', error);
+      return;
+    }
+
+    setCustosVariaveis(data || []);
+  };
+
+  const fetchPedagiosRota = async (rotaId: string) => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('pedagios')
+      .select('id, descricao, valor')
+      .eq('user_id', user.id)
+      .eq('rota_id', rotaId);
+
+    if (error) {
+      console.error('Error fetching pedagios:', error);
+      return;
+    }
+
+    setPedagiosRota(data || []);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !parametrosGlobais) return;
+
+    // Get vehicle and route data
+    const vehicle = vehicles.find(v => v.id === formData.veiculo_id);
+    const route = routes.find(r => r.id === formData.rota_id);
+
+    if (!vehicle || !route) {
+      toast({
+        title: "Erro",
+        description: "Veículo ou rota não encontrados",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Calculate detailed costs
+    const distanciaKm = route.distancia_km;
+    const consumoCombustivelL = distanciaKm / vehicle.km_por_litro;
+    const custoCombustivel = consumoCombustivelL * parametrosGlobais.preco_diesel_litro;
+    
+    // Sum all variable costs
+    const custoVariaveis = custosVariaveis.reduce((acc, cv) => acc + (cv.valor_por_km * distanciaKm), 0);
+    
+    // Sum all tolls for this route
+    const custoPedagios = pedagiosRota.reduce((acc, p) => acc + p.valor, 0);
+    
+    // Calculate prorated fixed costs (monthly costs / 30 days)
+    const custoFixoRateado = custosFixos.reduce((acc, cf) => acc + (cf.valor_mensal / 30), 0);
+    
+    // Calculate estimated time
+    const tempoEstimadoH = distanciaKm / parametrosGlobais.velocidade_media_kmh;
+    
+    // Calculate total cost
+    const custoTotal = custoCombustivel + custoVariaveis + custoPedagios + custoFixoRateado;
+    const custoPorEntrega = custoTotal / formData.entregas_na_rota;
 
     const calculoData = {
       user_id: user.id,
       veiculo_id: formData.veiculo_id,
       rota_id: formData.rota_id,
-      entregas_na_rota: formData.entregas_na_rota
+      nome_cenario: formData.nome_cenario || null,
+      entregas_na_rota: formData.entregas_na_rota,
+      distancia_km: distanciaKm,
+      custo_por_km: vehicle.custo_por_km,
+      consumo_combustivel_l: consumoCombustivelL,
+      custo_combustivel: custoCombustivel,
+      custo_variaveis: custoVariaveis,
+      custo_pedagios: custoPedagios,
+      custo_fixo_rateado: custoFixoRateado,
+      tempo_estimado_h: tempoEstimadoH,
+      custo_total: custoTotal,
+      custo_por_entrega: custoPorEntrega
     };
 
     if (editingCalculo) {
@@ -190,6 +348,7 @@ export default function Calculos() {
     setFormData({
       veiculo_id: '',
       rota_id: '',
+      nome_cenario: '',
       entregas_na_rota: 1
     });
     fetchCalculos();
@@ -200,6 +359,7 @@ export default function Calculos() {
     setFormData({
       veiculo_id: calculo.veiculo_id,
       rota_id: calculo.rota_id,
+      nome_cenario: calculo.nome_cenario || '',
       entregas_na_rota: calculo.entregas_na_rota
     });
     setIsDialogOpen(true);
@@ -231,6 +391,7 @@ export default function Calculos() {
     setFormData({
       veiculo_id: '',
       rota_id: '',
+      nome_cenario: '',
       entregas_na_rota: 1
     });
     setIsDialogOpen(true);
@@ -246,13 +407,18 @@ export default function Calculos() {
       return;
     }
 
-    const headers = ['Veículo', 'Rota', 'Distância (km)', 'Custo/km', 'Entregas', 'Custo Total', 'Custo/Entrega'];
+    const headers = ['Cenário', 'Veículo', 'Rota', 'Distância (km)', 'Combustível (L)', 'Custo Combustível', 'Custos Variáveis', 'Pedágios', 'Custo Fixo Rateado', 'Tempo (h)', 'Custo Total', 'Custo/Entrega'];
     const rows = calculos.map(calculo => [
+      calculo.nome_cenario || 'Sem nome',
       calculo.vehicles?.tipo || 'N/A',
       calculo.routes ? `${calculo.routes.origem} → ${calculo.routes.destino}` : 'N/A',
       calculo.distancia_km,
-      calculo.custo_por_km.toFixed(2),
-      calculo.entregas_na_rota,
+      calculo.consumo_combustivel_l.toFixed(2),
+      calculo.custo_combustivel.toFixed(2),
+      calculo.custo_variaveis.toFixed(2),
+      calculo.custo_pedagios.toFixed(2),
+      calculo.custo_fixo_rateado.toFixed(2),
+      calculo.tempo_estimado_h.toFixed(2),
       calculo.custo_total.toFixed(2),
       calculo.custo_por_entrega.toFixed(2)
     ]);
@@ -316,6 +482,17 @@ export default function Calculos() {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
+                    <Label htmlFor="nome_cenario">Nome do Cenário (Opcional)</Label>
+                    <Input
+                      id="nome_cenario"
+                      type="text"
+                      placeholder="Ex: Cenário Base, Cenário Otimizado..."
+                      value={formData.nome_cenario}
+                      onChange={(e) => setFormData({ ...formData, nome_cenario: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="veiculo_id">Veículo</Label>
                     <Select
                       value={formData.veiculo_id}
@@ -328,7 +505,7 @@ export default function Calculos() {
                       <SelectContent>
                         {vehicles.map((vehicle) => (
                           <SelectItem key={vehicle.id} value={vehicle.id}>
-                            {vehicle.tipo} - R$ {vehicle.custo_por_km}/km
+                            {vehicle.tipo} ({vehicle.km_por_litro} km/L)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -355,6 +532,22 @@ export default function Calculos() {
                     </Select>
                   </div>
 
+                  {pedagiosRota.length > 0 && (
+                    <div className="space-y-2 p-3 bg-muted rounded-md">
+                      <Label className="text-sm font-medium">Pedágios nesta rota:</Label>
+                      {pedagiosRota.map(p => (
+                        <div key={p.id} className="text-sm flex justify-between">
+                          <span>{p.descricao}</span>
+                          <span className="font-medium">R$ {p.valor.toFixed(2)}</span>
+                        </div>
+                      ))}
+                      <div className="text-sm font-bold flex justify-between border-t pt-2">
+                        <span>Total Pedágios:</span>
+                        <span>R$ {pedagiosRota.reduce((acc, p) => acc + p.valor, 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="entregas_na_rota">Entregas na Rota</Label>
                     <Input
@@ -366,6 +559,31 @@ export default function Calculos() {
                       required
                     />
                   </div>
+
+                  {parametrosGlobais && (
+                    <div className="space-y-1 p-3 bg-muted rounded-md text-sm">
+                      <div className="flex justify-between">
+                        <span>Preço Diesel:</span>
+                        <span className="font-medium">R$ {parametrosGlobais.preco_diesel_litro.toFixed(2)}/L</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Velocidade Média:</span>
+                        <span className="font-medium">{parametrosGlobais.velocidade_media_kmh} km/h</span>
+                      </div>
+                      {custosVariaveis.length > 0 && (
+                        <div className="flex justify-between">
+                          <span>Custos Variáveis:</span>
+                          <span className="font-medium">{custosVariaveis.length} cadastrados</span>
+                        </div>
+                      )}
+                      {custosFixos.length > 0 && (
+                        <div className="flex justify-between">
+                          <span>Custos Fixos:</span>
+                          <span className="font-medium">{custosFixos.length} cadastrados</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <Button type="submit" className="w-full">
                     {editingCalculo ? 'Atualizar' : 'Calcular'}
@@ -394,59 +612,75 @@ export default function Calculos() {
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Veículo</TableHead>
-                  <TableHead>Rota</TableHead>
-                  <TableHead>Distância</TableHead>
-                  <TableHead>Custo/km</TableHead>
-                  <TableHead>Entregas</TableHead>
-                  <TableHead>Custo Total</TableHead>
-                  <TableHead>Custo/Entrega</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {calculos.map((calculo) => (
-                  <TableRow key={calculo.id}>
-                    <TableCell>
-                      {calculo.vehicles?.tipo || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {calculo.routes ? `${calculo.routes.origem} → ${calculo.routes.destino}` : 'N/A'}
-                    </TableCell>
-                    <TableCell>{calculo.distancia_km}km</TableCell>
-                    <TableCell>R$ {calculo.custo_por_km.toFixed(2)}</TableCell>
-                    <TableCell>{calculo.entregas_na_rota}</TableCell>
-                    <TableCell>R$ {calculo.custo_total.toFixed(2)}</TableCell>
-                    <TableCell>R$ {calculo.custo_por_entrega.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <RoleProtectedRoute requiredPermission={{ action: 'update', entity: 'calculos' }}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(calculo)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </RoleProtectedRoute>
-                        <RoleProtectedRoute requiredPermission={{ action: 'delete', entity: 'calculos' }}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(calculo.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </RoleProtectedRoute>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cenário</TableHead>
+                    <TableHead>Veículo</TableHead>
+                    <TableHead>Rota</TableHead>
+                    <TableHead>Distância</TableHead>
+                    <TableHead>Combustível</TableHead>
+                    <TableHead>Custo Comb.</TableHead>
+                    <TableHead>C. Variáveis</TableHead>
+                    <TableHead>Pedágios</TableHead>
+                    <TableHead>C. Fixo Rat.</TableHead>
+                    <TableHead>Tempo</TableHead>
+                    <TableHead>Entregas</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Por Entrega</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {calculos.map((calculo) => (
+                    <TableRow key={calculo.id}>
+                      <TableCell className="font-medium">
+                        {calculo.nome_cenario || <span className="text-muted-foreground">Sem nome</span>}
+                      </TableCell>
+                      <TableCell>
+                        {calculo.vehicles?.tipo || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {calculo.routes ? `${calculo.routes.origem} → ${calculo.routes.destino}` : 'N/A'}
+                      </TableCell>
+                      <TableCell>{calculo.distancia_km.toFixed(0)}km</TableCell>
+                      <TableCell>{calculo.consumo_combustivel_l.toFixed(1)}L</TableCell>
+                      <TableCell>R$ {calculo.custo_combustivel.toFixed(2)}</TableCell>
+                      <TableCell>R$ {calculo.custo_variaveis.toFixed(2)}</TableCell>
+                      <TableCell>R$ {calculo.custo_pedagios.toFixed(2)}</TableCell>
+                      <TableCell>R$ {calculo.custo_fixo_rateado.toFixed(2)}</TableCell>
+                      <TableCell>{calculo.tempo_estimado_h.toFixed(1)}h</TableCell>
+                      <TableCell>{calculo.entregas_na_rota}</TableCell>
+                      <TableCell className="font-bold">R$ {calculo.custo_total.toFixed(2)}</TableCell>
+                      <TableCell className="font-medium">R$ {calculo.custo_por_entrega.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <RoleProtectedRoute requiredPermission={{ action: 'update', entity: 'calculos' }}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(calculo)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </RoleProtectedRoute>
+                          <RoleProtectedRoute requiredPermission={{ action: 'delete', entity: 'calculos' }}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(calculo.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </RoleProtectedRoute>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
