@@ -39,10 +39,7 @@ const mainItems = [
 
 const managementItems = [
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
-  { title: "Custos Fixos", url: "/custos-fixos", icon: DollarSign },
-  { title: "Custos Variáveis", url: "/custos-variaveis", icon: TrendingUp },
-  { title: "Pedágios", url: "/pedagios", icon: MapPin },
-  { title: "Parâmetros", url: "/parametros-globais", icon: Settings },
+  { title: "Custos", url: "/custos", icon: Settings },
   { title: "Cálculos", url: "/calculos", icon: Calculator },
   { title: "Usuários", url: "/users", icon: Users },
 ]

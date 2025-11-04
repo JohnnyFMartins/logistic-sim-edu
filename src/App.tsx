@@ -19,10 +19,7 @@ import SimulationCreate from "./pages/SimulationCreate";
 import SimulationCompare from "./pages/SimulationCompare";
 import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
-import CustosFixos from "@/pages/CustosFixos";
-import CustosVariaveis from "@/pages/CustosVariaveis";
-import Pedagios from "@/pages/Pedagios";
-import ParametrosGlobais from "@/pages/ParametrosGlobais";
+import Custos from "@/pages/Custos";
 import Calculos from "@/pages/Calculos";
 import ViagemDetalhe from "@/pages/ViagemDetalhe";
 import Parameters from "@/pages/Parameters";
@@ -125,31 +122,10 @@ const App = () => (
                 </AppLayout>
               </ProtectedRoute>
             } />
-            <Route path="/custos-fixos" element={
+            <Route path="/custos" element={
               <ProtectedRoute>
                 <AppLayout>
-                  <CustosFixos />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/custos-variaveis" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <CustosVariaveis />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/pedagios" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Pedagios />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/parametros-globais" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ParametrosGlobais />
+                  <Custos />
                 </AppLayout>
               </ProtectedRoute>
             } />
