@@ -1,5 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { calcularCustos } from '../_shared/calculos.ts'
+import {
+  fetchVehicleData,
+  fetchRouteData,
+  fetchGlobalParameters,
+  fetchActiveCosts,
+  fetchRouteTolls,
+} from '../_shared/data-fetchers.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,113 +87,15 @@ serve(async (req) => {
       )
     }
 
-    // Get route data using admin client
-    const { data: rota, error: rotaError } = await supabaseAdmin
-      .from('routes')
-      .select('*')
-      .eq('id', viagem.route_id)
-      .single()
-
-    if (rotaError || !rota) {
-      console.error('Error fetching route:', rotaError)
-      return new Response(
-        JSON.stringify({ error: 'Route not found' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404 
-        }
-      )
-    }
-
-    // Get vehicle data using admin client
-    const { data: veiculo, error: veiculoError } = await supabaseAdmin
-      .from('vehicles')
-      .select('*')
-      .eq('id', viagem.vehicle_id)
-      .single()
-
-    if (veiculoError || !veiculo) {
-      console.error('Error fetching vehicle:', veiculoError)
-      return new Response(
-        JSON.stringify({ error: 'Vehicle not found' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404 
-        }
-      )
-    }
-
-    // Get global parameters
-    const { data: parametros, error: paramError } = await supabaseClient
-      .from('parametros_globais')
-      .select('*')
-      .eq('user_id', simulacao.user_id)
-      .single()
-
-    if (paramError || !parametros) {
-      console.error('Error fetching global parameters:', paramError)
-      return new Response(
-        JSON.stringify({ error: 'Global parameters not found' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404 
-        }
-      )
-    }
-
-    // Get active fixed costs
-    const { data: custosFixos, error: fixosError } = await supabaseClient
-      .from('custos_fixos')
-      .select('valor_mensal')
-      .eq('user_id', simulacao.user_id)
-      .eq('ativo', true)
-
-    if (fixosError) {
-      console.error('Error fetching fixed costs:', fixosError)
-      return new Response(
-        JSON.stringify({ error: 'Error fetching fixed costs' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      )
-    }
-
-    // Get active variable costs
-    const { data: custosVariaveis, error: variaveisError } = await supabaseClient
-      .from('custos_variaveis')
-      .select('valor_por_km')
-      .eq('user_id', simulacao.user_id)
-      .eq('ativo', true)
-
-    if (variaveisError) {
-      console.error('Error fetching variable costs:', variaveisError)
-      return new Response(
-        JSON.stringify({ error: 'Error fetching variable costs' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      )
-    }
-
-    // Get route tolls
-    const { data: pedagios, error: pedagogiosError } = await supabaseClient
-      .from('pedagios')
-      .select('valor')
-      .eq('rota_id', rota.id)
-      .eq('user_id', simulacao.user_id)
-
-    if (pedagogiosError) {
-      console.error('Error fetching tolls:', pedagogiosError)
-      return new Response(
-        JSON.stringify({ error: 'Error fetching tolls' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      )
-    }
+    // Fetch all required data
+    const rota = await fetchRouteData(supabaseAdmin, viagem.route_id)
+    const veiculo = await fetchVehicleData(supabaseAdmin, viagem.vehicle_id)
+    const parametros = await fetchGlobalParameters(supabaseClient, simulacao.user_id)
+    const { variableCosts: custosVariaveis, fixedCosts: custosFixos } = await fetchActiveCosts(
+      supabaseClient,
+      simulacao.user_id
+    )
+    const pedagios = await fetchRouteTolls(supabaseClient, simulacao.user_id, rota.id)
 
     // Apply overrides or use base values
     const precoDiesel = simulacao.preco_diesel_litro || parametros.preco_diesel_litro
@@ -194,52 +104,37 @@ serve(async (req) => {
     const entregasNaRota = simulacao.entregas_na_rota || 1
     const custoVarExtraPorKm = simulacao.custo_var_extra_por_km || 0
     const pedagogiosExtra = simulacao.pedagios_extra || 0
-    const ocupacaoPct = simulacao.ocupacao_pct || 100
 
-    // Calculate simulation results
-    const distanciaKm = rota.distancia_km
-    const consumoCombustivel = distanciaKm / kmPorLitro
-    const custoCombustivel = consumoCombustivel * precoDiesel
-    
-    const somaCustosVariaveis = custosVariaveis?.reduce((sum, custo) => sum + Number(custo.valor_por_km), 0) || 0
-    const custoVariaveis = (somaCustosVariaveis + custoVarExtraPorKm) * distanciaKm
-    
-    const somaPedagios = pedagios?.reduce((sum, pedagio) => sum + Number(pedagio.valor), 0) || 0
-    const custoPedagios = somaPedagios + pedagogiosExtra
-    
-    const somaCustosFixos = custosFixos?.reduce((sum, custo) => sum + Number(custo.valor_mensal), 0) || 0
-    const custoFixoRateado = somaCustosFixos / 30 // Daily rate
-    
-    const custoTotal = custoCombustivel + custoVariaveis + custoPedagios + custoFixoRateado
-    const custoPorEntrega = custoTotal / entregasNaRota
-    const tempoEstimado = distanciaKm / velocidadeMedia
-    
-    // Calculate cost per ton-km if weight is available
-    let custoPorToneladaKm = null
-    if (viagem.peso_ton && viagem.peso_ton > 0) {
-      custoPorToneladaKm = custoTotal / (viagem.peso_ton * distanciaKm)
-    }
-    
-    // Calculate margin if revenue exists
-    let margem = null
-    if (viagem.receita && viagem.receita > 0) {
-      margem = ((viagem.receita - custoTotal) / viagem.receita) * 100
-    }
+    // Calculate using shared function
+    const resultado = calcularCustos({
+      distanciaKm: Number(rota.distancia_km) || 0,
+      kmPorLitro: kmPorLitro,
+      precoDieselLitro: precoDiesel,
+      velocidadeMediaKmh: velocidadeMedia,
+      custosVariaveis: custosVariaveis,
+      pedagios: pedagios,
+      custosFixos: custosFixos,
+      entregasNaRota: entregasNaRota,
+      custoVarExtraPorKm: custoVarExtraPorKm,
+      pedagogiosExtra: pedagogiosExtra,
+      pesoTon: viagem.peso_ton,
+      receita: viagem.receita,
+    })
 
     // Update simulation with calculated results
     const { error: updateError } = await supabaseClient
       .from('simulacoes')
       .update({
-        custo_total: custoTotal,
-        custo_por_entrega: custoPorEntrega,
-        custo_por_tonelada_km: custoPorToneladaKm,
-        margem: margem,
-        consumo_combustivel_l: consumoCombustivel,
-        custo_combustivel: custoCombustivel,
-        custo_variaveis: custoVariaveis,
-        custo_pedagios: custoPedagios,
-        custo_fixo_rateado: custoFixoRateado,
-        tempo_estimado_h: tempoEstimado,
+        custo_total: resultado.custoTotal,
+        custo_por_entrega: resultado.custoPorEntrega,
+        custo_por_tonelada_km: resultado.custoPorToneladaKm,
+        margem: resultado.margem,
+        consumo_combustivel_l: resultado.consumoCombustivelL,
+        custo_combustivel: resultado.custoCombustivel,
+        custo_variaveis: resultado.custoVariaveis,
+        custo_pedagios: resultado.custoPedagios,
+        custo_fixo_rateado: resultado.custoFixoRateado,
+        tempo_estimado_h: resultado.tempoEstimadoH,
         updated_at: new Date().toISOString()
       })
       .eq('id', simulacao_id)
@@ -259,18 +154,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        results: {
-          custo_total: custoTotal,
-          custo_por_entrega: custoPorEntrega,
-          custo_por_tonelada_km: custoPorToneladaKm,
-          margem: margem,
-          consumo_combustivel_l: consumoCombustivel,
-          custo_combustivel: custoCombustivel,
-          custo_variaveis: custoVariaveis,
-          custo_pedagios: custoPedagios,
-          custo_fixo_rateado: custoFixoRateado,
-          tempo_estimado_h: tempoEstimado
-        }
+        results: resultado
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
