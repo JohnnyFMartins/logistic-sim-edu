@@ -1,16 +1,11 @@
-import { useState } from "react"
 import { 
   Truck, 
   Route, 
-  Calculator, 
-  Calendar,
   Play,
   BarChart3, 
   LayoutDashboard,
   Users,
-  Settings,
   DollarSign,
-  TrendingUp,
   MapPin
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
@@ -24,23 +19,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar"
 
 const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Veículos", url: "/vehicles", icon: Truck },
   { title: "Rotas", url: "/routes", icon: Route },
-  { title: "Custos", url: "/calculator", icon: Calculator },
-  { title: "Viagens", url: "/viagens", icon: Calendar },
+  { title: "Viagens", url: "/viagens", icon: MapPin },
   { title: "Simulações", url: "/simulations", icon: Play },
 ]
 
 const managementItems = [
+  { title: "Custos", url: "/custos", icon: DollarSign },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
-  { title: "Custos", url: "/custos", icon: Settings },
-  { title: "Cálculos", url: "/calculos", icon: Calculator },
   { title: "Usuários", url: "/users", icon: Users },
 ]
 

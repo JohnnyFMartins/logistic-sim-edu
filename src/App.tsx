@@ -11,7 +11,6 @@ import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import RoutesPage from "./pages/RoutesPage";
 import Cargo from "./pages/Cargo";
-import Calculator from "./pages/Calculator";
 import Viagens from "./pages/Viagens";
 import Reports from "./pages/Reports";
 import Simulations from "./pages/Simulations";
@@ -20,7 +19,6 @@ import SimulationCompare from "./pages/SimulationCompare";
 import Settings from "@/pages/Settings";
 import Users from "@/pages/Users";
 import Custos from "@/pages/Custos";
-import Calculos from "@/pages/Calculos";
 import ViagemDetalhe from "@/pages/ViagemDetalhe";
 import Parameters from "@/pages/Parameters";
 import Auth from "./pages/Auth";
@@ -63,13 +61,6 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Cargo />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/calculator" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Calculator />
                 </AppLayout>
               </ProtectedRoute>
             } />
@@ -126,13 +117,6 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <Custos />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/calculos" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Calculos />
                 </AppLayout>
               </ProtectedRoute>
             } />
