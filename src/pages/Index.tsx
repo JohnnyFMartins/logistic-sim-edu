@@ -1,222 +1,135 @@
 
-import { MetricCard } from "@/components/MetricCard"
 import { AdminSetup } from "@/components/AdminSetup"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
-import { useRole } from "@/hooks/useRole"
 import { 
   Truck, 
   Route, 
-  Package, 
-  DollarSign, 
-  TrendingUp, 
-  Users,
-  Calendar,
-  AlertCircle,
+  MapPin, 
   Play,
-  BarChart3
+  DollarSign, 
+  BarChart3,
+  Users
 } from "lucide-react"
 
 const Index = () => {
   const navigate = useNavigate();
-  const { role, canRead } = useRole();
+
+  const menuItems = [
+    { 
+      title: "Veículos", 
+      url: "/vehicles", 
+      icon: Truck,
+      bgClass: "bg-primary/20 hover:bg-primary/30",
+      iconClass: "text-primary",
+      shadowClass: "group-hover:shadow-primary/50"
+    },
+    { 
+      title: "Rotas", 
+      url: "/routes", 
+      icon: Route,
+      bgClass: "bg-success/20 hover:bg-success/30",
+      iconClass: "text-success",
+      shadowClass: "group-hover:shadow-success/50"
+    },
+    { 
+      title: "Viagens", 
+      url: "/viagens", 
+      icon: MapPin,
+      bgClass: "bg-warning/20 hover:bg-warning/30",
+      iconClass: "text-warning",
+      shadowClass: "group-hover:shadow-warning/50"
+    },
+    { 
+      title: "Simulações", 
+      url: "/simulations", 
+      icon: Play,
+      bgClass: "bg-primary/20 hover:bg-primary/30",
+      iconClass: "text-primary",
+      shadowClass: "group-hover:shadow-primary/50"
+    },
+    { 
+      title: "Custos", 
+      url: "/custos", 
+      icon: DollarSign,
+      bgClass: "bg-success/20 hover:bg-success/30",
+      iconClass: "text-success",
+      shadowClass: "group-hover:shadow-success/50"
+    },
+    { 
+      title: "Relatórios", 
+      url: "/reports", 
+      icon: BarChart3,
+      bgClass: "bg-warning/20 hover:bg-warning/30",
+      iconClass: "text-warning",
+      shadowClass: "group-hover:shadow-warning/50"
+    },
+    { 
+      title: "Usuários", 
+      url: "/users", 
+      icon: Users,
+      bgClass: "bg-primary/20 hover:bg-primary/30",
+      iconClass: "text-primary",
+      shadowClass: "group-hover:shadow-primary/50"
+    },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-[80vh] flex flex-col">
       {/* Admin Setup for first user */}
       <AdminSetup />
 
-      {/* Welcome Section */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">
-          TMS Didático — SENAI
-        </h1>
-        <p className="text-muted-foreground">
-          Sistema educacional de gestão de transporte para ensino de logística - Aprenda através de simulações práticas.
-        </p>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-3xl p-12 mb-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-primary/5 [mask-image:linear-gradient(0deg,transparent,black)]"></div>
+        <div className="relative">
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-4">
+            TMS Didático — SENAI
+          </h1>
+          <p className="text-xl text-muted-foreground mb-4">
+            seu sistema de simulações
+          </p>
+          <div className="inline-block border-2 border-primary/30 rounded-full px-6 py-2 backdrop-blur-sm">
+            <p className="text-primary font-medium">
+              Logística sem fronteiras, aprendizagem exponencial!
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Veículos Cadastrados"
-          value={12}
-          description="Total de veículos no sistema"
-          icon={Truck}
-          trend={{ value: 20, isPositive: true }}
-        />
-        <MetricCard
-          title="Rotas Ativas"
-          value={8}
-          description="Rotas em operação"
-          icon={Route}
-          trend={{ value: 12.5, isPositive: true }}
-          variant="success"
-        />
-        <MetricCard
-          title="Cargas Processadas"
-          value={45}
-          description="Total este mês"
-          icon={Package}
-          trend={{ value: -2.1, isPositive: false }}
-        />
-        <MetricCard
-          title="Custo Médio/km"
-          value="R$ 2,35"
-          description="Baseado nas últimas simulações"
-          icon={DollarSign}
-          variant="warning"
-        />
-      </div>
-
-      {/* Action Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="border-primary/20 bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Truck className="h-5 w-5 text-primary" />
-              Cadastrar Veículo
-            </CardTitle>
-            <CardDescription>
-              Adicione novos veículos para suas simulações de transporte
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full" onClick={() => navigate('/vehicles')}>
-              Novo Veículo
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-success/20 bg-success/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Route className="h-5 w-5 text-success" />
-              Definir Rota
-            </CardTitle>
-            <CardDescription>
-              Configure rotas com origem, destino e custos operacionais
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="secondary" className="w-full" onClick={() => navigate('/routes')}>
-              Nova Rota
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-success/20 bg-success/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="h-5 w-5 text-success" />
-              Simulações
-            </CardTitle>
-            <CardDescription>
-              Execute simulações de transporte e aprenda logística na prática
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="secondary" className="w-full" onClick={() => navigate('/simulations')}>
-              Nova Simulação
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-warning/20 bg-warning/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-warning" />
-              Relatórios
-            </CardTitle>
-            <CardDescription>
-              Gere relatórios detalhados das suas simulações e análises
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              variant="secondary" 
-              className="w-full" 
-              onClick={() => navigate('/reports')}
-              disabled={!canRead('reports')}
+      {/* Icon Menu Grid */}
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-8 md:gap-12 mb-16">
+          {menuItems.map((item) => (
+            <button
+              key={item.title}
+              onClick={() => navigate(item.url)}
+              className="flex flex-col items-center gap-4 group transition-all hover:scale-110"
             >
-              Ver Relatórios
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+              <div className={`
+                w-24 h-24 md:w-28 md:h-28 rounded-full 
+                ${item.bgClass}
+                flex items-center justify-center 
+                transition-all duration-300
+                shadow-lg hover:shadow-xl
+                ${item.shadowClass}
+              `}>
+                <item.icon className={`w-12 h-12 md:w-14 md:h-14 ${item.iconClass}`} />
+              </div>
+              <span className="text-sm md:text-base font-medium text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-wide">
+                {item.title}
+              </span>
+            </button>
+          ))}
+        </div>
 
-      {/* Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Atividades Recentes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/50">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Veículo Volvo FH-460 cadastrado</p>
-                <p className="text-xs text-muted-foreground">Há 2 horas</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/50">
-              <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Rota São Paulo → Rio simulada</p>
-                <p className="text-xs text-muted-foreground">Há 4 horas</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/50">
-              <div className="w-2 h-2 bg-warning rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Relatório de custos gerado</p>
-                <p className="text-xs text-muted-foreground">Ontem</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Indicadores de Aprendizado
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Simulações Completas</span>
-                <span className="font-medium">15/20</span>
-              </div>
-              <div className="w-full bg-accent rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Exercícios de Cálculo</span>
-                <span className="font-medium">8/12</span>
-              </div>
-              <div className="w-full bg-accent rounded-full h-2">
-                <div className="bg-success h-2 rounded-full" style={{ width: '67%' }}></div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Relatórios Gerados</span>
-                <span className="font-medium">5/8</span>
-              </div>
-              <div className="w-full bg-accent rounded-full h-2">
-                <div className="bg-warning h-2 rounded-full" style={{ width: '62%' }}></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Quick Info */}
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="text-muted-foreground">
+            Sistema educacional de gestão de transporte para ensino de logística.
+            <br />
+            Selecione uma opção acima para começar.
+          </p>
+        </div>
       </div>
     </div>
   );
