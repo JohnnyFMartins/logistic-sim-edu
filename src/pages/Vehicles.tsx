@@ -413,7 +413,7 @@ const Vehicles = () => {
     <div className="space-y-6">
       {/* Header com busca e filtros */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between min-h-[80px]">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
               <Truck className="h-8 w-8 text-primary" />

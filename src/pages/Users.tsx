@@ -161,7 +161,7 @@ export default function Users() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-2 min-h-[80px]">
         <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
           <UsersIcon className="h-8 w-8" />
           Usuários do Sistema
