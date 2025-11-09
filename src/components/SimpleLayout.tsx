@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/useAuth"
 import { useRole } from "@/hooks/useRole"
 import { LogOut, Truck, Route, MapPin, Play, DollarSign, BarChart3, Users, Home } from "lucide-react"
-import { ReactNode } from "react"
+import { ReactNode, useMemo } from "react"
 import { useNavigate, useLocation, Link } from "react-router-dom"
 import {
   Breadcrumb,
@@ -145,27 +145,27 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
     return routes[pathname] || 'Página';
   };
 
-  const getBreadcrumbs = () => {
+  const breadcrumbs = useMemo(() => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
-    const breadcrumbs = [{ label: 'Início', path: '/' }];
+    const crumbs = [{ label: 'Início', path: '/' }];
     
     let currentPath = '';
     pathSegments.forEach((segment) => {
       currentPath += `/${segment}`;
-      breadcrumbs.push({
+      crumbs.push({
         label: getPageTitle(currentPath),
         path: currentPath,
       });
     });
     
-    return breadcrumbs;
-  };
+    return crumbs;
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+      {/* Header - Fixed height to prevent layout shift */}
+      <header className="border-b bg-card px-6 py-4 h-[72px] flex items-center">
+        <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <Truck className="h-6 w-6 text-primary-foreground" />
@@ -204,11 +204,11 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
         </div>
       </header>
 
-      {/* Icon Menu - Only show on non-home pages */}
+      {/* Icon Menu - Only show on non-home pages - Fixed height to prevent layout shift */}
       {location.pathname !== '/' && (
         <>
-          <div className="border-b bg-card/50 py-6">
-            <div className="max-w-7xl mx-auto px-6">
+          <div className="border-b bg-card/50 py-6 min-h-[140px] flex items-center">
+            <div className="max-w-7xl mx-auto px-6 w-full">
               <div className="flex gap-6 justify-center flex-wrap">
                 {menuItems.map((item) => (
                   <button
@@ -238,31 +238,28 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
             </div>
           </div>
           
-          {/* Breadcrumbs */}
-          <div className="bg-background border-b">
-            <div className="max-w-7xl mx-auto px-6 py-3">
+          {/* Breadcrumbs - Fixed height to prevent layout shift */}
+          <div className="bg-background border-b min-h-[52px] flex items-center">
+            <div className="max-w-7xl mx-auto px-6 py-3 w-full">
               <Breadcrumb>
                 <BreadcrumbList>
-                  {(() => {
-                    const breadcrumbs = getBreadcrumbs();
-                    return breadcrumbs.map((crumb, index) => {
-                      const isLast = index === breadcrumbs.length - 1;
-                      return (
-                        <>
-                          <BreadcrumbItem key={crumb.path}>
-                            {isLast ? (
-                              <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                            ) : (
-                              <BreadcrumbLink asChild>
-                                <Link to={crumb.path}>{crumb.label}</Link>
-                              </BreadcrumbLink>
-                            )}
-                          </BreadcrumbItem>
-                          {!isLast && <BreadcrumbSeparator key={`sep-${index}`} />}
-                        </>
-                      );
-                    });
-                  })()}
+                  {breadcrumbs.map((crumb, index) => {
+                    const isLast = index === breadcrumbs.length - 1;
+                    return (
+                      <>
+                        <BreadcrumbItem key={crumb.path}>
+                          {isLast ? (
+                            <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                          ) : (
+                            <BreadcrumbLink asChild>
+                              <Link to={crumb.path}>{crumb.label}</Link>
+                            </BreadcrumbLink>
+                          )}
+                        </BreadcrumbItem>
+                        {!isLast && <BreadcrumbSeparator key={`sep-${index}`} />}
+                      </>
+                    );
+                  })}
                 </BreadcrumbList>
               </Breadcrumb>
             </div>
