@@ -243,23 +243,26 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
             <div className="max-w-7xl mx-auto px-6 py-3">
               <Breadcrumb>
                 <BreadcrumbList>
-                  {getBreadcrumbs().map((crumb, index) => {
-                    const isLast = index === getBreadcrumbs().length - 1;
-                    return (
-                      <BreadcrumbItem key={crumb.path}>
-                        {isLast ? (
-                          <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                        ) : (
-                          <>
-                            <BreadcrumbLink asChild>
-                              <Link to={crumb.path}>{crumb.label}</Link>
-                            </BreadcrumbLink>
-                            <BreadcrumbSeparator />
-                          </>
-                        )}
-                      </BreadcrumbItem>
-                    );
-                  })}
+                  {(() => {
+                    const breadcrumbs = getBreadcrumbs();
+                    return breadcrumbs.map((crumb, index) => {
+                      const isLast = index === breadcrumbs.length - 1;
+                      return (
+                        <>
+                          <BreadcrumbItem key={crumb.path}>
+                            {isLast ? (
+                              <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                            ) : (
+                              <BreadcrumbLink asChild>
+                                <Link to={crumb.path}>{crumb.label}</Link>
+                              </BreadcrumbLink>
+                            )}
+                          </BreadcrumbItem>
+                          {!isLast && <BreadcrumbSeparator key={`sep-${index}`} />}
+                        </>
+                      );
+                    });
+                  })()}
                 </BreadcrumbList>
               </Breadcrumb>
             </div>
