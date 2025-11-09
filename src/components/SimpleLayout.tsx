@@ -3,9 +3,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/useAuth"
 import { useRole } from "@/hooks/useRole"
-import { LogOut, Truck, Route, MapPin, Play, DollarSign, BarChart3, Users } from "lucide-react"
+import { LogOut, Truck, Route, MapPin, Play, DollarSign, BarChart3, Users, Home } from "lucide-react"
 import { ReactNode } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useNavigate, useLocation, Link } from "react-router-dom"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 interface SimpleLayoutProps {
   children: ReactNode
@@ -114,6 +122,45 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
     }
   };
 
+  const getPageTitle = (pathname: string): string => {
+    const routes: Record<string, string> = {
+      '/': 'Início',
+      '/vehicles': 'Veículos',
+      '/routes': 'Rotas',
+      '/viagens': 'Viagens',
+      '/simulations': 'Simulações',
+      '/simulations/create': 'Nova Simulação',
+      '/simulations/compare': 'Comparar Simulações',
+      '/custos': 'Custos',
+      '/custos/fixos': 'Custos Fixos',
+      '/custos/variaveis': 'Custos Variáveis',
+      '/pedagios': 'Pedágios',
+      '/cargo': 'Carga',
+      '/parameters': 'Parâmetros',
+      '/parametros-globais': 'Parâmetros Globais',
+      '/reports': 'Relatórios',
+      '/users': 'Usuários',
+      '/settings': 'Configurações',
+    };
+    return routes[pathname] || 'Página';
+  };
+
+  const getBreadcrumbs = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    const breadcrumbs = [{ label: 'Início', path: '/' }];
+    
+    let currentPath = '';
+    pathSegments.forEach((segment) => {
+      currentPath += `/${segment}`;
+      breadcrumbs.push({
+        label: getPageTitle(currentPath),
+        path: currentPath,
+      });
+    });
+    
+    return breadcrumbs;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -159,36 +206,65 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
 
       {/* Icon Menu - Only show on non-home pages */}
       {location.pathname !== '/' && (
-        <div className="border-b bg-card/50 py-6">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex gap-6 justify-center flex-wrap">
-              {menuItems.map((item) => (
-                <button
-                  key={item.title}
-                  onClick={() => navigate(item.url)}
-                  className={`flex flex-col items-center gap-2 group transition-all hover:scale-110 ${
-                    location.pathname === item.url ? 'opacity-100' : 'opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <div className={`
-                    w-16 h-16 rounded-full 
-                    ${item.bgClass}
-                    flex items-center justify-center 
-                    transition-all duration-300
-                    shadow-lg hover:shadow-xl
-                    ${item.shadowClass}
-                    ${location.pathname === item.url ? 'ring-2 ring-primary ring-offset-2' : ''}
-                  `}>
-                    <item.icon className={`w-8 h-8 ${item.iconClass}`} />
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-wide">
-                    {item.title}
-                  </span>
-                </button>
-              ))}
+        <>
+          <div className="border-b bg-card/50 py-6">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="flex gap-6 justify-center flex-wrap">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.title}
+                    onClick={() => navigate(item.url)}
+                    className={`flex flex-col items-center gap-2 group transition-all hover:scale-110 ${
+                      location.pathname === item.url ? 'opacity-100' : 'opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <div className={`
+                      w-16 h-16 rounded-full 
+                      ${item.bgClass}
+                      flex items-center justify-center 
+                      transition-all duration-300
+                      shadow-lg hover:shadow-xl
+                      ${item.shadowClass}
+                      ${location.pathname === item.url ? 'ring-2 ring-primary ring-offset-2' : ''}
+                    `}>
+                      <item.icon className={`w-8 h-8 ${item.iconClass}`} />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-wide">
+                      {item.title}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+          
+          {/* Breadcrumbs */}
+          <div className="bg-background border-b">
+            <div className="max-w-7xl mx-auto px-6 py-3">
+              <Breadcrumb>
+                <BreadcrumbList>
+                  {getBreadcrumbs().map((crumb, index) => {
+                    const isLast = index === getBreadcrumbs().length - 1;
+                    return (
+                      <BreadcrumbItem key={crumb.path}>
+                        {isLast ? (
+                          <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                        ) : (
+                          <>
+                            <BreadcrumbLink asChild>
+                              <Link to={crumb.path}>{crumb.label}</Link>
+                            </BreadcrumbLink>
+                            <BreadcrumbSeparator />
+                          </>
+                        )}
+                      </BreadcrumbItem>
+                    );
+                  })}
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Main Content */}
