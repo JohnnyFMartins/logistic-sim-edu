@@ -241,7 +241,7 @@ function ParametrosTab() {
     setHasChanges(true);
   };
 
-  const canModify = canUpdate("parametros_globais");
+  const canModify = true;
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-8">Carregando...</div>;
@@ -480,7 +480,7 @@ function CustosFixosTab() {
     setIsDialogOpen(true);
   };
 
-  const canModify = canCreate("custos_fixos") || canUpdate("custos_fixos");
+  const canModify = true;
 
   return (
     <div className="space-y-6">
@@ -591,16 +591,12 @@ function CustosFixosTab() {
                   {canModify && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {canUpdate("custos_fixos") && (
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(custo)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDelete("custos_fixos") && (
-                          <Button variant="ghost" size="sm" onClick={() => deleteCustoMutation.mutate(custo.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(custo)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteCustoMutation.mutate(custo.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   )}
@@ -743,7 +739,7 @@ function CustosVariaveisTab() {
     setIsDialogOpen(true);
   };
 
-  const canModify = canCreate("custos_variaveis") || canUpdate("custos_variaveis");
+  const canModify = true;
 
   return (
     <div className="space-y-6">
@@ -854,16 +850,12 @@ function CustosVariaveisTab() {
                   {canModify && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {canUpdate("custos_variaveis") && (
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(custo)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDelete("custos_variaveis") && (
-                          <Button variant="ghost" size="sm" onClick={() => deleteCustoMutation.mutate(custo.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(custo)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteCustoMutation.mutate(custo.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   )}
@@ -1027,7 +1019,7 @@ function PedagiosTab() {
     return route ? `${route.origem} → ${route.destino}` : 'Rota não encontrada';
   };
 
-  const canModify = canCreate("pedagios") || canUpdate("pedagios");
+  const canModify = true;
 
   return (
     <div className="space-y-6">
@@ -1150,16 +1142,12 @@ function PedagiosTab() {
                   {canModify && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {canUpdate("pedagios") && (
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(pedagio)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDelete("pedagios") && (
-                          <Button variant="ghost" size="sm" onClick={() => deletePedagioMutation.mutate(pedagio.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(pedagio)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deletePedagioMutation.mutate(pedagio.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   )}

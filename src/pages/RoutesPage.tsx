@@ -327,35 +327,33 @@ export default function RoutesPage() {
             </p>
           </div>
           
-          <RoleProtectedRoute requiredPermission={{ action: 'create', entity: 'routes' }}>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setImportOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Importar CSV
-              </Button>
-              <Button variant="outline" onClick={handleExport}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar CSV
-              </Button>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nova Rota
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Nova Rota</DialogTitle>
-                    <DialogDescription>
-                      Adicione uma nova rota ao sistema.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <RouteForm onSubmit={handleSubmit} />
-                </DialogContent>
-              </Dialog>
-            </div>
-          </RoleProtectedRoute>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Importar CSV
+            </Button>
+            <Button variant="outline" onClick={handleExport}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Rota
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Nova Rota</DialogTitle>
+                  <DialogDescription>
+                    Adicione uma nova rota ao sistema.
+                  </DialogDescription>
+                </DialogHeader>
+                <RouteForm onSubmit={handleSubmit} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Barra de busca */}
@@ -394,38 +392,34 @@ export default function RoutesPage() {
                     {route.origem} → {route.destino}
                   </CardTitle>
                   <div className="flex gap-2">
-                    <RoleProtectedRoute requiredPermission={{ action: 'update', entity: 'routes' }}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(route)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </RoleProtectedRoute>
-                    <RoleProtectedRoute requiredPermission={{ action: 'delete', entity: 'routes' }}>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir a rota "{route.origem} → {route.destino}"? Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(route.id)}>
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </RoleProtectedRoute>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(route)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir esta rota? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(route.id)}>
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </CardHeader>

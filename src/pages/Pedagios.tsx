@@ -242,7 +242,7 @@ export default function Pedagios() {
     return route ? `${route.origem} → ${route.destino}` : 'Rota não encontrada';
   };
 
-  const canModify = canCreate("pedagios") || canUpdate("pedagios");
+  const canModify = true;
 
   return (
     <div className="space-y-6">
@@ -390,24 +390,20 @@ export default function Pedagios() {
                   {canModify && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {canUpdate("pedagios") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(pedagio)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDelete("pedagios") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deletePedagioMutation.mutate(pedagio.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(pedagio)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deletePedagioMutation.mutate(pedagio.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   )}

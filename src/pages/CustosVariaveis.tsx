@@ -208,7 +208,7 @@ export default function CustosVariaveis() {
     }
   };
 
-  const canModify = canCreate("custos_variaveis") || canUpdate("custos_variaveis");
+  const canModify = true;
 
   return (
     <div className="space-y-6">
@@ -344,24 +344,20 @@ export default function CustosVariaveis() {
                   {canModify && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {canUpdate("custos_variaveis") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(custo)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDelete("custos_variaveis") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteCustoMutation.mutate(custo.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(custo)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteCustoMutation.mutate(custo.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   )}

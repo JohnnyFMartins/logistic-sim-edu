@@ -129,7 +129,7 @@ export default function ParametrosGlobais() {
     setHasChanges(true);
   };
 
-  const canModify = canUpdate("parametros_globais");
+  const canModify = true;
 
   if (isLoading) {
     return (
