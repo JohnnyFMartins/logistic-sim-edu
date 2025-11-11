@@ -20,7 +20,6 @@ import {
   PlayCircle,
   Calculator,
   Fuel,
-  DollarSign,
   RefreshCw
 } from "lucide-react";
 import { format } from "date-fns";
@@ -61,6 +60,13 @@ interface Route {
   destino: string;
   distancia_km: number;
   tempo_estimado_h: number;
+}
+
+interface VehicleCost {
+  id: string;
+  nome: string;
+  valor_mensal: number;
+  ativo: boolean;
 }
 
 export default function ViagemDetalhe() {
@@ -129,6 +135,24 @@ export default function ViagemDetalhe() {
       return data as Route;
     },
     enabled: !!trip?.route_id,
+  });
+
+  // Fetch vehicle costs
+  const { data: vehicleCosts } = useQuery({
+    queryKey: ["vehicle-costs", trip?.vehicle_id],
+    queryFn: async () => {
+      if (!trip?.vehicle_id || !user?.id) return [];
+      const { data, error } = await supabase
+        .from("custos_veiculo")
+        .select("*")
+        .eq("veiculo_id", trip.vehicle_id)
+        .eq("user_id", user.id)
+        .eq("ativo", true);
+      
+      if (error) throw error;
+      return data as VehicleCost[];
+    },
+    enabled: !!trip?.vehicle_id && !!user?.id,
   });
 
   // Recalculate costs mutation
@@ -353,8 +377,9 @@ export default function ViagemDetalhe() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
+            <div className="grid gap-6">
+              {/* Fuel Section */}
+              <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-sm font-medium">
                   <Fuel className="h-4 w-4 text-muted-foreground" />
                   <span>Combustível</span>
@@ -369,19 +394,10 @@ export default function ViagemDetalhe() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-sm font-medium">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>Custos Variáveis</span>
-                </div>
-                <div className="pl-6">
-                  <p className="text-sm font-medium">
-                    R$ {trip.custo_variaveis?.toFixed(2) || '0.00'}
-                  </p>
-                </div>
-              </div>
+              <Separator />
 
-              <div className="space-y-2">
+              {/* Tolls Section */}
+              <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-sm font-medium">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span>Pedágios</span>
@@ -393,36 +409,67 @@ export default function ViagemDetalhe() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <Separator />
+
+              {/* Vehicle Costs Section */}
+              <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-sm font-medium">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Custo Fixo (Diário)</span>
+                  <Truck className="h-4 w-4 text-muted-foreground" />
+                  <span>Custos do Veículo (Rateio Diário)</span>
                 </div>
-                <div className="pl-6">
-                  <p className="text-sm font-medium">
-                    R$ {trip.custo_fixo_rateado?.toFixed(2) || '0.00'}
-                  </p>
+                <div className="pl-6 space-y-2">
+                  {vehicleCosts && vehicleCosts.length > 0 ? (
+                    <>
+                      {vehicleCosts.map((cost) => (
+                        <div key={cost.id} className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">{cost.nome}</span>
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">
+                              R$ {cost.valor_mensal.toFixed(2)}/mês
+                            </p>
+                            <p className="font-medium">
+                              R$ {(Number(cost.valor_mensal) / 30).toFixed(2)}/dia
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      <Separator className="my-2" />
+                      <div className="flex justify-between items-center text-sm font-medium pt-2">
+                        <span>Total Diário:</span>
+                        <span>R$ {trip.custo_fixo_rateado?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum custo cadastrado para este veículo
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-sm font-medium">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>Tempo Estimado</span>
-                </div>
-                <div className="pl-6">
-                  <p className="text-sm font-medium">
-                    {trip.tempo_estimado_h?.toFixed(2) || '0.00'} horas
-                  </p>
-                </div>
-              </div>
+              <Separator />
 
-              <div className="space-y-2 border-l-2 border-primary pl-4">
-                <div className="text-sm font-medium text-primary">
-                  CUSTO TOTAL ESTIMADO
+              {/* Time and Total */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 text-sm font-medium">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>Tempo Estimado</span>
+                  </div>
+                  <div className="pl-6">
+                    <p className="text-sm font-medium">
+                      {trip.tempo_estimado_h?.toFixed(2) || '0.00'} horas
+                    </p>
+                  </div>
                 </div>
-                <div className="text-lg font-bold text-primary">
-                  R$ {trip.custo_total_estimado?.toFixed(2) || '0.00'}
+
+                <div className="space-y-2 border-l-2 border-primary pl-4">
+                  <div className="text-sm font-medium text-primary">
+                    CUSTO TOTAL ESTIMADO
+                  </div>
+                  <div className="text-lg font-bold text-primary">
+                    R$ {trip.custo_total_estimado?.toFixed(2) || '0.00'}
+                  </div>
                 </div>
               </div>
             </div>
