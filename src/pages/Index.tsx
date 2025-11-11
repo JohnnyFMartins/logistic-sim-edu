@@ -45,7 +45,7 @@ const Index = () => {
       shadowClass: "group-hover:shadow-primary/50"
     },
     { 
-      title: "Custos", 
+      title: "Parâmetros", 
       url: "/custos", 
       icon: DollarSign,
       bgClass: "bg-success/20 hover:bg-success/30",

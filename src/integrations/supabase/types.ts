@@ -309,6 +309,7 @@ export type Database = {
           tempo_estimado_h: number
           updated_at: string
           user_id: string
+          valor_pedagio: number | null
         }
         Insert: {
           created_at?: string
@@ -319,6 +320,7 @@ export type Database = {
           tempo_estimado_h: number
           updated_at?: string
           user_id: string
+          valor_pedagio?: number | null
         }
         Update: {
           created_at?: string
@@ -329,6 +331,7 @@ export type Database = {
           tempo_estimado_h?: number
           updated_at?: string
           user_id?: string
+          valor_pedagio?: number | null
         }
         Relationships: []
       }

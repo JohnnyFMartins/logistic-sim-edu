@@ -42,31 +42,31 @@ const menuItems = [
     iconClass: "text-warning",
     shadowClass: "group-hover:shadow-warning/50"
   },
-  { 
-    title: "Simulações", 
-    url: "/simulations", 
-    icon: Play,
-    bgClass: "bg-primary/20 hover:bg-primary/30",
-    iconClass: "text-primary",
-    shadowClass: "group-hover:shadow-primary/50"
-  },
-  { 
-    title: "Custos", 
-    url: "/custos", 
-    icon: DollarSign,
-    bgClass: "bg-success/20 hover:bg-success/30",
-    iconClass: "text-success",
-    shadowClass: "group-hover:shadow-success/50"
-  },
-  { 
-    title: "Relatórios", 
-    url: "/reports", 
-    icon: BarChart3,
-    bgClass: "bg-warning/20 hover:bg-warning/30",
-    iconClass: "text-warning",
-    shadowClass: "group-hover:shadow-warning/50"
-  },
-];
+    { 
+      title: "Simulações", 
+      url: "/simulations", 
+      icon: Play,
+      bgClass: "bg-primary/20 hover:bg-primary/30",
+      iconClass: "text-primary",
+      shadowClass: "group-hover:shadow-primary/50"
+    },
+    { 
+      title: "Parâmetros", 
+      url: "/custos", 
+      icon: DollarSign,
+      bgClass: "bg-success/20 hover:bg-success/30",
+      iconClass: "text-success",
+      shadowClass: "group-hover:shadow-success/50"
+    },
+    { 
+      title: "Relatórios", 
+      url: "/reports", 
+      icon: BarChart3,
+      bgClass: "bg-warning/20 hover:bg-warning/30",
+      iconClass: "text-warning",
+      shadowClass: "group-hover:shadow-warning/50"
+    },
+  ];
 
 export function SimpleLayout({ children }: SimpleLayoutProps) {
   const { user, signOut } = useAuth();
@@ -94,7 +94,7 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
       '/simulations': 'Simulações',
       '/simulations/create': 'Nova Simulação',
       '/simulations/compare': 'Comparar Simulações',
-      '/custos': 'Custos',
+      '/custos': 'Parâmetros',
       '/custos/fixos': 'Custos Fixos',
       '/custos/variaveis': 'Custos Variáveis',
       '/pedagios': 'Pedágios',

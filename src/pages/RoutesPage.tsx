@@ -18,6 +18,7 @@ interface Route {
   destino: string
   distancia_km: number
   tempo_estimado_h: number
+  valor_pedagio: number
   created_at: string
   updated_at: string
 }
@@ -35,7 +36,8 @@ export default function RoutesPage() {
     origem: '',
     destino: '',
     distancia_km: '',
-    tempo_estimado_h: ''
+    tempo_estimado_h: '',
+    valor_pedagio: '0'
   })
   const { user } = useAuth()
   const { toast } = useToast()
@@ -94,6 +96,7 @@ export default function RoutesPage() {
         destino: formData.destino,
         distancia_km: parseFloat(formData.distancia_km),
         tempo_estimado_h: parseFloat(formData.tempo_estimado_h),
+        valor_pedagio: parseFloat(formData.valor_pedagio),
         user_id: user.id
       }
 
@@ -128,7 +131,8 @@ export default function RoutesPage() {
       origem: route.origem,
       destino: route.destino,
       distancia_km: route.distancia_km.toString(),
-      tempo_estimado_h: route.tempo_estimado_h.toString()
+      tempo_estimado_h: route.tempo_estimado_h.toString(),
+      valor_pedagio: route.valor_pedagio.toString()
     })
     setIsEditDialogOpen(true)
   }
@@ -142,7 +146,8 @@ export default function RoutesPage() {
         origem: formData.origem,
         destino: formData.destino,
         distancia_km: parseFloat(formData.distancia_km),
-        tempo_estimado_h: parseFloat(formData.tempo_estimado_h)
+        tempo_estimado_h: parseFloat(formData.tempo_estimado_h),
+        valor_pedagio: parseFloat(formData.valor_pedagio)
       }
 
       const { data, error } = await supabase
@@ -202,7 +207,8 @@ export default function RoutesPage() {
       origem: '',
       destino: '',
       distancia_km: '',
-      tempo_estimado_h: ''
+      tempo_estimado_h: '',
+      valor_pedagio: '0'
     })
   }
 
@@ -216,8 +222,8 @@ export default function RoutesPage() {
 
   const handleExport = () => {
     const csv = [
-      ['Origem', 'Destino', 'Distância (km)', 'Tempo (h)'].join(','),
-      ...routes.map(r => [r.origem, r.destino, r.distancia_km, r.tempo_estimado_h].join(','))
+      ['Origem', 'Destino', 'Distância (km)', 'Tempo (h)', 'Pedágio (R$)'].join(','),
+      ...routes.map(r => [r.origem, r.destino, r.distancia_km, r.tempo_estimado_h, r.valor_pedagio].join(','))
     ].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
@@ -280,6 +286,20 @@ export default function RoutesPage() {
             required
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="valor_pedagio">Valor do Pedágio (R$)</Label>
+        <Input
+          id="valor_pedagio"
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="0.00"
+          value={formData.valor_pedagio}
+          onChange={(e) => setFormData({ ...formData, valor_pedagio: e.target.value })}
+        />
+        <p className="text-xs text-muted-foreground">Valor total dos pedágios neste trecho</p>
       </div>
       
       <DialogFooter>
@@ -437,7 +457,7 @@ export default function RoutesPage() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                <div className="grid grid-cols-3 gap-4 pt-2 border-t">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-primary">{route.distancia_km}</p>
                     <p className="text-xs text-muted-foreground">km</p>
@@ -448,6 +468,10 @@ export default function RoutesPage() {
                       <p className="text-2xl font-bold text-primary">{route.tempo_estimado_h}</p>
                     </div>
                     <p className="text-xs text-muted-foreground">horas</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-success">R$ {route.valor_pedagio.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">pedágio</p>
                   </div>
                 </div>
               </CardContent>
