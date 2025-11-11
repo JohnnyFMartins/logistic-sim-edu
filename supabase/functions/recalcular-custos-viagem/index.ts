@@ -6,6 +6,7 @@ import {
   fetchVehicleData,
   fetchRouteData,
   fetchGlobalParameters,
+  fetchVehicleCosts,
 } from '../_shared/data-fetchers.ts'
 
 const corsHeaders = {
@@ -53,11 +54,11 @@ serve(async (req) => {
     const vehicle = await fetchVehicleData(supabaseClient, trip.vehicle_id)
     const route = await fetchRouteData(supabaseClient, trip.route_id)
     const params = await fetchGlobalParameters(supabaseClient, user.id)
+    const vehicleCosts = await fetchVehicleCosts(supabaseClient, user.id, trip.vehicle_id)
     
-    // Use simplified cost model - only tolls from route
+    // Use simplified cost model - no variable/fixed costs, tolls from route
     const variableCosts: any[] = []
     const fixedCosts: any[] = []
-    const vehicleCosts: any[] = []
     const tolls = route.valor_pedagio ? [{ valor: route.valor_pedagio }] : []
 
     // Perform calculations using shared function
