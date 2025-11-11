@@ -8,6 +8,7 @@ import {
   fetchGlobalParameters,
   fetchActiveCosts,
   fetchRouteTolls,
+  fetchVehicleCosts,
 } from '../_shared/data-fetchers.ts'
 
 const corsHeaders = {
@@ -57,6 +58,7 @@ serve(async (req) => {
     const params = await fetchGlobalParameters(supabaseClient, user.id)
     const { variableCosts, fixedCosts } = await fetchActiveCosts(supabaseClient, user.id)
     const tolls = await fetchRouteTolls(supabaseClient, user.id, trip.route_id)
+    const vehicleCosts = await fetchVehicleCosts(supabaseClient, user.id, trip.vehicle_id)
 
     // Perform calculations using shared function
     const resultado = calcularCustos({
@@ -67,6 +69,7 @@ serve(async (req) => {
       custosVariaveis: variableCosts,
       pedagios: tolls,
       custosFixos: fixedCosts,
+      custosVeiculo: vehicleCosts,
       pesoTon: trip.peso_ton,
       receita: trip.receita,
     })

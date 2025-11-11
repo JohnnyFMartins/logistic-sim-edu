@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { VehicleCostsDialog } from "@/components/VehicleCostsDialog"
 import { 
   Dialog,
   DialogContent,
@@ -31,7 +32,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Truck, Plus, Edit, Trash2, Search, Filter, Upload, Download } from "lucide-react"
+import { Truck, Plus, Edit, Trash2, Search, Filter, Upload, Download, DollarSign } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
@@ -46,7 +47,6 @@ interface Vehicle {
   user_id: string
   tipo: string
   capacidade_ton: number
-  custo_por_km: number
   km_por_litro: number
   status: VehicleStatus
   created_at: string
@@ -63,10 +63,10 @@ const Vehicles = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [importOpen, setImportOpen] = useState(false)
+  const [costsDialogVehicle, setCostsDialogVehicle] = useState<Vehicle | null>(null)
   const [formData, setFormData] = useState({
     tipo: '',
     capacidade_ton: '',
-    custo_por_km: '',
     km_por_litro: '',
     status: 'Disponível' as VehicleStatus
   })
@@ -145,7 +145,6 @@ const Vehicles = () => {
             user_id: user.id,
             tipo: formData.tipo,
             capacidade_ton: parseFloat(formData.capacidade_ton),
-            custo_por_km: parseFloat(formData.custo_por_km),
             km_por_litro: parseFloat(formData.km_por_litro),
             status: formData.status
           }
@@ -179,7 +178,6 @@ const Vehicles = () => {
     setFormData({
       tipo: vehicle.tipo,
       capacidade_ton: vehicle.capacidade_ton.toString(),
-      custo_por_km: vehicle.custo_por_km.toString(),
       km_por_litro: vehicle.km_por_litro.toString(),
       status: vehicle.status
     })
@@ -196,7 +194,6 @@ const Vehicles = () => {
         .update({
           tipo: formData.tipo,
           capacidade_ton: parseFloat(formData.capacidade_ton),
-          custo_por_km: parseFloat(formData.custo_por_km),
           km_por_litro: parseFloat(formData.km_por_litro),
           status: formData.status
         })
@@ -254,7 +251,6 @@ const Vehicles = () => {
     setFormData({
       tipo: '',
       capacidade_ton: '',
-      custo_por_km: '',
       km_por_litro: '',
       status: 'Disponível'
     })
@@ -278,9 +274,9 @@ const Vehicles = () => {
 
   const handleExport = () => {
     const csv = [
-      ['Tipo', 'Capacidade (ton)', 'Custo/KM', 'KM/Litro', 'Status'].join(','),
+      ['Tipo', 'Capacidade (ton)', 'KM/Litro', 'Status'].join(','),
       ...vehicles.map(v => 
-        [v.tipo, v.capacidade_ton, v.custo_por_km, v.km_por_litro, v.status].join(',')
+        [v.tipo, v.capacidade_ton, v.km_por_litro, v.status].join(',')
       )
     ].join('\n')
 
@@ -334,19 +330,6 @@ const Vehicles = () => {
             placeholder="40.00"
             value={formData.capacidade_ton}
             onChange={(e) => setFormData({ ...formData, capacidade_ton: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="custo_por_km">Custo/km (R$)</Label>
-          <Input
-            id="custo_por_km"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="0.85"
-            value={formData.custo_por_km}
-            onChange={(e) => setFormData({ ...formData, custo_por_km: e.target.value })}
             required
           />
         </div>
@@ -506,6 +489,14 @@ const Vehicles = () => {
                     {getStatusBadge(vehicle.status)}
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCostsDialogVehicle(vehicle)}
+                      title="Gerenciar custos do veículo"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                    </Button>
                     <RoleProtectedRoute requiredPermission={{ action: 'update', entity: 'vehicles' }}>
                       <Button
                         variant="outline"
@@ -552,13 +543,6 @@ const Vehicles = () => {
                     <p className="text-xs text-muted-foreground">km/litro</p>
                   </div>
                 </div>
-                
-                <div className="pt-2 border-t">
-                  <div className="text-center">
-                    <p className="text-lg font-semibold text-foreground">R$ {vehicle.custo_por_km.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">custo por km</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           ))
@@ -584,6 +568,15 @@ const Vehicles = () => {
         type="vehicles"
         onImport={handleImport}
       />
+
+      {costsDialogVehicle && (
+        <VehicleCostsDialog
+          vehicleId={costsDialogVehicle.id}
+          vehicleName={costsDialogVehicle.tipo}
+          open={!!costsDialogVehicle}
+          onOpenChange={(open) => !open && setCostsDialogVehicle(null)}
+        />
+      )}
     </div>
   )
 }

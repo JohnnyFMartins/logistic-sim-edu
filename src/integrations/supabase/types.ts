@@ -176,6 +176,39 @@ export type Database = {
         }
         Relationships: []
       }
+      custos_veiculo: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+          valor_mensal: number
+          veiculo_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+          valor_mensal?: number
+          veiculo_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+          valor_mensal?: number
+          veiculo_id?: string
+        }
+        Relationships: []
+      }
       parametros_globais: {
         Row: {
           created_at: string
@@ -474,7 +507,6 @@ export type Database = {
         Row: {
           capacidade_ton: number
           created_at: string
-          custo_por_km: number
           id: string
           km_por_litro: number
           status: string
@@ -485,7 +517,6 @@ export type Database = {
         Insert: {
           capacidade_ton: number
           created_at?: string
-          custo_por_km: number
           id?: string
           km_por_litro: number
           status?: string
@@ -496,7 +527,6 @@ export type Database = {
         Update: {
           capacidade_ton?: number
           created_at?: string
-          custo_por_km?: number
           id?: string
           km_por_litro?: number
           status?: string

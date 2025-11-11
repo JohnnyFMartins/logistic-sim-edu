@@ -10,6 +10,7 @@ export interface CalculationInput {
   custosVariaveis: Array<{ valor_por_km: number }>;
   pedagios: Array<{ valor: number }>;
   custosFixos: Array<{ valor_mensal: number }>;
+  custosVeiculo: Array<{ valor_mensal: number }>;
   entregasNaRota?: number;
   custoVarExtraPorKm?: number;
   pedagogiosExtra?: number;
@@ -51,12 +52,16 @@ export function calcularCustos(input: CalculationInput): CalculationResult {
   );
   const custoPedagios = somaPedagios + (input.pedagogiosExtra || 0);
 
-  // 5. Daily fixed cost = (sum of active monthly fixed costs / 30)
+  // 5. Daily fixed cost = (sum of active monthly fixed costs / 30) + (sum of vehicle costs / 30)
   const somaCustosFixos = input.custosFixos.reduce(
     (sum, custo) => sum + Number(custo.valor_mensal),
     0
   );
-  const custoFixoRateado = somaCustosFixos / 30;
+  const somaCustosVeiculo = input.custosVeiculo.reduce(
+    (sum, custo) => sum + Number(custo.valor_mensal),
+    0
+  );
+  const custoFixoRateado = (somaCustosFixos + somaCustosVeiculo) / 30;
 
   // 6. Total cost
   const custoTotal = custoCombustivel + custoVariaveis + custoPedagios + custoFixoRateado;

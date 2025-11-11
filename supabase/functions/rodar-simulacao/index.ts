@@ -7,6 +7,7 @@ import {
   fetchGlobalParameters,
   fetchActiveCosts,
   fetchRouteTolls,
+  fetchVehicleCosts,
 } from '../_shared/data-fetchers.ts'
 
 const corsHeaders = {
@@ -96,6 +97,7 @@ serve(async (req) => {
       simulacao.user_id
     )
     const pedagios = await fetchRouteTolls(supabaseClient, simulacao.user_id, rota.id)
+    const custosVeiculo = await fetchVehicleCosts(supabaseClient, simulacao.user_id, viagem.vehicle_id)
 
     // Apply overrides or use base values
     const precoDiesel = simulacao.preco_diesel_litro || parametros.preco_diesel_litro
@@ -114,6 +116,7 @@ serve(async (req) => {
       custosVariaveis: custosVariaveis,
       pedagios: pedagios,
       custosFixos: custosFixos,
+      custosVeiculo: custosVeiculo,
       entregasNaRota: entregasNaRota,
       custoVarExtraPorKm: custoVarExtraPorKm,
       pedagogiosExtra: pedagogiosExtra,

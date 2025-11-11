@@ -96,6 +96,23 @@ export async function fetchActiveCosts(
   };
 }
 
+export async function fetchVehicleCosts(
+  supabaseClient: SupabaseClient,
+  userId: string,
+  vehicleId: string
+) {
+  const { data, error } = await supabaseClient
+    .from('custos_veiculo')
+    .select('valor_mensal')
+    .eq('user_id', userId)
+    .eq('veiculo_id', vehicleId)
+    .eq('ativo', true);
+
+  if (error) throw new Error(`Failed to fetch vehicle costs: ${error.message}`);
+
+  return data || [];
+}
+
 export async function fetchRouteTolls(
   supabaseClient: SupabaseClient,
   userId: string,
