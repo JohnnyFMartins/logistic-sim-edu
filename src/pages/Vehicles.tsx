@@ -51,6 +51,86 @@ interface Vehicle {
   updated_at: string
 }
 
+// Componente de formulário movido para fora para evitar recriação
+const VehicleForm = ({ 
+  formData, 
+  setFormData, 
+  onSubmit, 
+  onCancel, 
+  isEdit = false 
+}: { 
+  formData: { tipo: string; capacidade_ton: string; km_por_litro: string; status: VehicleStatus }
+  setFormData: (data: any) => void
+  onSubmit: (e: React.FormEvent) => void
+  onCancel: () => void
+  isEdit?: boolean
+}) => (
+  <form onSubmit={onSubmit} className="space-y-4">
+    <div className="space-y-2">
+      <Label htmlFor="tipo">Tipo de Veículo</Label>
+      <Input
+        id="tipo"
+        placeholder="Ex: Caminhão, Van, Carreta"
+        value={formData.tipo}
+        onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+        required
+      />
+    </div>
+    
+    <div className="grid grid-cols-3 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="capacidade_ton">Capacidade (ton)</Label>
+        <Input
+          id="capacidade_ton"
+          type="number"
+          step="0.01"
+          min="0.1"
+          placeholder="40.00"
+          value={formData.capacidade_ton}
+          onChange={(e) => setFormData({ ...formData, capacidade_ton: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="km_por_litro">Km/litro</Label>
+        <Input
+          id="km_por_litro"
+          type="number"
+          step="0.01"
+          min="0.1"
+          placeholder="3.20"
+          value={formData.km_por_litro}
+          onChange={(e) => setFormData({ ...formData, km_por_litro: e.target.value })}
+          required
+        />
+      </div>
+    </div>
+
+    <div className="space-y-2">
+      <Label htmlFor="status">Status</Label>
+      <Select value={formData.status} onValueChange={(value: VehicleStatus) => setFormData({ ...formData, status: value })}>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione o status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="Disponível">Disponível</SelectItem>
+          <SelectItem value="Em_Manutenção">Em Manutenção</SelectItem>
+          <SelectItem value="Em_Uso">Em Uso</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+    <DialogFooter>
+      <Button type="button" variant="secondary" onClick={onCancel}>
+        Cancelar
+      </Button>
+      <Button type="submit">
+        {isEdit ? 'Atualizar' : 'Cadastrar'} Veículo
+      </Button>
+    </DialogFooter>
+  </form>
+)
+
 const Vehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([])
@@ -303,77 +383,12 @@ const Vehicles = () => {
     }
   }
 
-  const VehicleForm = ({ onSubmit, isEdit = false }: { onSubmit: (e: React.FormEvent) => void, isEdit?: boolean }) => (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="tipo">Tipo de Veículo</Label>
-        <Input
-          id="tipo"
-          placeholder="Ex: Caminhão, Van, Carreta"
-          value={formData.tipo}
-          onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-          required
-        />
-      </div>
-      
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="capacidade_ton">Capacidade (ton)</Label>
-          <Input
-            id="capacidade_ton"
-            type="number"
-            step="0.01"
-            min="0.1"
-            placeholder="40.00"
-            value={formData.capacidade_ton}
-            onChange={(e) => setFormData({ ...formData, capacidade_ton: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="km_por_litro">Km/litro</Label>
-          <Input
-            id="km_por_litro"
-            type="number"
-            step="0.01"
-            min="0.1"
-            placeholder="3.20"
-            value={formData.km_por_litro}
-            onChange={(e) => setFormData({ ...formData, km_por_litro: e.target.value })}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="status">Status</Label>
-        <Select value={formData.status} onValueChange={(value: VehicleStatus) => setFormData({ ...formData, status: value })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione o status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Disponível">Disponível</SelectItem>
-            <SelectItem value="Em_Manutenção">Em Manutenção</SelectItem>
-            <SelectItem value="Em_Uso">Em Uso</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <DialogFooter>
-        <Button type="button" variant="secondary" onClick={() => {
-          resetForm()
-          setIsDialogOpen(false)
-          setIsEditDialogOpen(false)
-          setEditingVehicle(null)
-        }}>
-          Cancelar
-        </Button>
-        <Button type="submit">
-          {isEdit ? 'Atualizar' : 'Cadastrar'} Veículo
-        </Button>
-      </DialogFooter>
-    </form>
-  )
+  const handleCancelForm = () => {
+    resetForm()
+    setIsDialogOpen(false)
+    setIsEditDialogOpen(false)
+    setEditingVehicle(null)
+  }
 
   if (isLoading) {
     return (
@@ -427,7 +442,12 @@ const Vehicles = () => {
                     Preencha as informações do veículo para adicionar à frota.
                   </DialogDescription>
                 </DialogHeader>
-                <VehicleForm onSubmit={handleSubmit} />
+                <VehicleForm 
+                  formData={formData}
+                  setFormData={setFormData}
+                  onSubmit={handleSubmit}
+                  onCancel={handleCancelForm}
+                />
               </DialogContent>
             </Dialog>
           </div>
@@ -549,7 +569,13 @@ const Vehicles = () => {
               Altere as informações do veículo {editingVehicle?.tipo}.
             </DialogDescription>
           </DialogHeader>
-          <VehicleForm onSubmit={handleEditSubmit} isEdit />
+          <VehicleForm 
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={handleEditSubmit}
+            onCancel={handleCancelForm}
+            isEdit 
+          />
         </DialogContent>
       </Dialog>
 
