@@ -9,8 +9,6 @@ import { useToast } from '@/hooks/use-toast'
 import { Plus, Edit, Trash2, MapPin, Clock, Search, Route, Upload, Download } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
-import { useRole } from '@/hooks/useRole'
-import { RoleProtectedRoute } from '@/components/RoleProtectedRoute'
 import { CSVImportDialog } from '@/components/CSVImportDialog'
 
 interface Route {
@@ -41,7 +39,6 @@ export default function RoutesPage() {
   })
   const { user } = useAuth()
   const { toast } = useToast()
-  const { canCreate, canUpdate, canDelete } = useRole()
 
   useEffect(() => {
     if (user) {

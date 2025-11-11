@@ -5,9 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SimpleLayout } from "@/components/SimpleLayout";
 import { AuthProvider } from "@/hooks/useAuth";
-import { RoleProvider } from "@/hooks/useRole";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import RoutesPage from "./pages/RoutesPage";
@@ -18,7 +16,6 @@ import Simulations from "./pages/Simulations";
 import SimulationCreate from "./pages/SimulationCreate";
 import SimulationCompare from "./pages/SimulationCompare";
 import Settings from "@/pages/Settings";
-import Users from "@/pages/Users";
 import Custos from "@/pages/Custos";
 import CustosFixos from "@/pages/CustosFixos";
 import CustosVariaveis from "@/pages/CustosVariaveis";
@@ -34,8 +31,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <RoleProvider>
-        <TooltipProvider>
+      <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -58,13 +54,11 @@ const App = () => (
             <Route path="/parametros-globais" element={<ProtectedRoute><SimpleLayout><ParametrosGlobais /></SimpleLayout></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><SimpleLayout><Reports /></SimpleLayout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SimpleLayout><Settings /></SimpleLayout></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute><RoleProtectedRoute requiredRole="admin"><SimpleLayout><Users /></SimpleLayout></RoleProtectedRoute></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </RoleProvider>
-  </AuthProvider>
+    </AuthProvider>
 </QueryClientProvider>
 );
 

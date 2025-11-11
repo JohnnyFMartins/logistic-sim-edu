@@ -36,8 +36,6 @@ import { Truck, Plus, Edit, Trash2, Search, Filter, Upload, Download, DollarSign
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
-import { useRole } from "@/hooks/useRole"
-import { RoleProtectedRoute } from "@/components/RoleProtectedRoute"
 import { CSVImportDialog } from "@/components/CSVImportDialog"
 
 type VehicleStatus = 'Disponível' | 'Em_Manutenção' | 'Em_Uso'
@@ -72,7 +70,6 @@ const Vehicles = () => {
   })
   const { toast } = useToast()
   const { user } = useAuth()
-  const { canCreate, canUpdate, canDelete } = useRole()
 
   useEffect(() => {
     if (user) {
