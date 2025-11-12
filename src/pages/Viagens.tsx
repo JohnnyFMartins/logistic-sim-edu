@@ -44,7 +44,6 @@ import {
   Clock,
   PlayCircle,
   Eye,
-  Filter,
   Weight,
   Package,
   Download,
@@ -90,9 +89,6 @@ export default function Viagens() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [startDateFilter, setStartDateFilter] = useState<string>('');
-  const [endDateFilter, setEndDateFilter] = useState<string>('');
 
   const [formData, setFormData] = useState<{
     vehicle_id: string;
@@ -114,32 +110,17 @@ export default function Viagens() {
     observacoes: "",
   });
 
-  // Fetch trips with filters
+  // Fetch trips
   const { data: trips = [], isLoading } = useQuery({
-    queryKey: ["trips", statusFilter, startDateFilter, endDateFilter],
+    queryKey: ["trips"],
     queryFn: async () => {
       if (!user?.id) return [];
       
-      let query = supabase
+      const { data, error } = await supabase
         .from("trips")
         .select("*")
-        .eq("user_id", user.id);
-
-      if (statusFilter !== 'all') {
-        query = query.eq("status", statusFilter);
-      }
-      
-      if (startDateFilter) {
-        query = query.gte("start_date", startDateFilter);
-      }
-      
-      if (endDateFilter) {
-        query = query.lte("end_date", endDateFilter);
-      }
-
-      query = query.order("start_date", { ascending: false });
-      
-      const { data, error } = await query;
+        .eq("user_id", user.id)
+        .order("start_date", { ascending: false });
       
       if (error) throw error;
       return data as Trip[];
@@ -681,101 +662,6 @@ export default function Viagens() {
           </DialogContent>
         </Dialog>
         </div>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Filter className="h-5 w-5" />
-            <span>Filtros</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Status</SelectItem>
-                  <SelectItem value="Planejada">Planejada</SelectItem>
-                  <SelectItem value="Em_Andamento">Em Andamento</SelectItem>
-                  <SelectItem value="Concluída">Concluída</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Data Início (a partir de)</Label>
-              <Input
-                type="date"
-                value={startDateFilter}
-                onChange={(e) => setStartDateFilter(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Data Término (até)</Label>
-              <Input
-                type="date"
-                value={endDateFilter}
-                onChange={(e) => setEndDateFilter(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Viagens</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{trips.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Planejadas</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {trips.filter(t => t.status === 'Planejada').length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
-            <PlayCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {trips.filter(t => t.status === 'Em_Andamento').length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {trips.filter(t => t.status === 'Concluída').length}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Trips Table */}
