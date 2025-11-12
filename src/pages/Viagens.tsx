@@ -388,6 +388,16 @@ export default function Viagens() {
       }
     }
 
+    // Validar custo extra não negativo
+    if (formData.custo_extra && parseFloat(formData.custo_extra) < 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O custo extra não pode ser negativo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingTrip) {
       updateTripMutation.mutate({ id: editingTrip.id, ...formData });
     } else {
@@ -640,6 +650,7 @@ export default function Viagens() {
                     type="number"
                     id="custo_extra"
                     step="0.01"
+                    min="0"
                     value={formData.custo_extra}
                     onChange={(e) => setFormData(prev => ({ ...prev, custo_extra: e.target.value }))}
                     placeholder="0.00"
