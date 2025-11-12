@@ -122,14 +122,22 @@ serve(async (req) => {
       receita: viagem.receita,
     })
 
+    // Add extra cost from base trip to the total
+    const custoExtra = Number(viagem.custo_extra) || 0
+    const custoTotalComExtra = resultado.custoTotal + custoExtra
+
+    // Recalculate metrics with extra cost included
+    const custoPorEntrega = entregasNaRota > 0 ? custoTotalComExtra / entregasNaRota : custoTotalComExtra
+    const margem = viagem.receita ? viagem.receita - custoTotalComExtra : null
+
     // Update simulation with calculated results
     const { error: updateError } = await supabaseClient
       .from('simulacoes')
       .update({
-        custo_total: resultado.custoTotal,
-        custo_por_entrega: resultado.custoPorEntrega,
+        custo_total: custoTotalComExtra,
+        custo_por_entrega: custoPorEntrega,
         custo_por_tonelada_km: resultado.custoPorToneladaKm,
-        margem: resultado.margem,
+        margem: margem,
         consumo_combustivel_l: resultado.consumoCombustivelL,
         custo_combustivel: resultado.custoCombustivel,
         custo_variaveis: resultado.custoVariaveis,
