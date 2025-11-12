@@ -374,6 +374,26 @@ export default function Viagens() {
       return;
     }
 
+    // Validar peso não negativo
+    if (formData.peso_ton && parseFloat(formData.peso_ton) < 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O peso não pode ser negativo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar volume não negativo
+    if (formData.volume_m3 && parseFloat(formData.volume_m3) < 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O volume não pode ser negativo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validar capacidade de peso
     if (formData.peso_ton) {
       const peso = parseFloat(formData.peso_ton);
@@ -618,6 +638,7 @@ export default function Viagens() {
                     type="number"
                     id="peso_ton"
                     step="0.01"
+                    min="0"
                     value={formData.peso_ton}
                     onChange={(e) => setFormData(prev => ({ ...prev, peso_ton: e.target.value }))}
                     placeholder="0.00"
@@ -634,6 +655,7 @@ export default function Viagens() {
                     type="number"
                     id="volume_m3"
                     step="0.01"
+                    min="0"
                     value={formData.volume_m3}
                     onChange={(e) => setFormData(prev => ({ ...prev, volume_m3: e.target.value }))}
                     placeholder="0.00"
