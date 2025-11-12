@@ -75,6 +75,10 @@ serve(async (req) => {
       receita: trip.receita,
     })
 
+    // Calcular custo total incluindo o custo extra
+    const custoExtra = Number(trip.custo_extra) || 0
+    const custoTotalComExtra = resultado.custoTotal + custoExtra
+
     // Update trip with calculated values
     const { error: updateError } = await supabaseClient
       .from('trips')
@@ -84,7 +88,7 @@ serve(async (req) => {
         custo_variaveis: resultado.custoVariaveis,
         custo_pedagios: resultado.custoPedagios,
         custo_fixo_rateado: resultado.custoFixoRateado,
-        custo_total_estimado: resultado.custoTotal,
+        custo_total_estimado: custoTotalComExtra,
         tempo_estimado_h: resultado.tempoEstimadoH,
         updated_at: new Date().toISOString()
       })
@@ -110,7 +114,8 @@ serve(async (req) => {
           custo_variaveis: resultado.custoVariaveis,
           custo_pedagios: resultado.custoPedagios,
           custo_fixo_rateado: resultado.custoFixoRateado,
-          custo_total_estimado: resultado.custoTotal,
+          custo_extra: custoExtra,
+          custo_total_estimado: custoTotalComExtra,
           tempo_estimado_h: resultado.tempoEstimadoH
         }
       }),

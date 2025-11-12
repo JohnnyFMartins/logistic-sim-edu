@@ -418,6 +418,7 @@ export type Database = {
           consumo_combustivel_l: number | null
           created_at: string
           custo_combustivel: number | null
+          custo_extra: number | null
           custo_fixo_rateado: number | null
           custo_pedagios: number | null
           custo_total_estimado: number | null
@@ -440,6 +441,7 @@ export type Database = {
           consumo_combustivel_l?: number | null
           created_at?: string
           custo_combustivel?: number | null
+          custo_extra?: number | null
           custo_fixo_rateado?: number | null
           custo_pedagios?: number | null
           custo_total_estimado?: number | null
@@ -462,6 +464,7 @@ export type Database = {
           consumo_combustivel_l?: number | null
           created_at?: string
           custo_combustivel?: number | null
+          custo_extra?: number | null
           custo_fixo_rateado?: number | null
           custo_pedagios?: number | null
           custo_total_estimado?: number | null

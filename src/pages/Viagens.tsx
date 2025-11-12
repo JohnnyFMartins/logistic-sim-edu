@@ -47,7 +47,8 @@ import {
   Weight,
   Package,
   Download,
-  FileText
+  FileText,
+  DollarSign
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -98,6 +99,7 @@ export default function Viagens() {
     status: 'Planejada' | 'Em_Andamento' | 'Concluída';
     peso_ton: string;
     volume_m3: string;
+    custo_extra: string;
     observacoes: string;
   }>({
     vehicle_id: "",
@@ -107,6 +109,7 @@ export default function Viagens() {
     status: "Planejada",
     peso_ton: "",
     volume_m3: "",
+    custo_extra: "",
     observacoes: "",
   });
 
@@ -176,6 +179,7 @@ export default function Viagens() {
         status: tripData.status,
         peso_ton: tripData.peso_ton ? parseFloat(tripData.peso_ton) : null,
         volume_m3: tripData.volume_m3 ? parseFloat(tripData.volume_m3) : null,
+        custo_extra: tripData.custo_extra ? parseFloat(tripData.custo_extra) : 0,
         observacoes: tripData.observacoes || null,
         user_id: user.id
       };
@@ -229,6 +233,7 @@ export default function Viagens() {
         status: tripData.status,
         peso_ton: tripData.peso_ton ? parseFloat(tripData.peso_ton) : null,
         volume_m3: tripData.volume_m3 ? parseFloat(tripData.volume_m3) : null,
+        custo_extra: tripData.custo_extra ? parseFloat(tripData.custo_extra) : 0,
         observacoes: tripData.observacoes || null,
       };
 
@@ -306,6 +311,7 @@ export default function Viagens() {
       status: "Planejada",
       peso_ton: "",
       volume_m3: "",
+      custo_extra: "",
       observacoes: "",
     });
     setEditingTrip(null);
@@ -335,6 +341,7 @@ export default function Viagens() {
       status: trip.status,
       peso_ton: trip.peso_ton?.toString() || "",
       volume_m3: trip.volume_m3?.toString() || "",
+      custo_extra: (trip as any).custo_extra?.toString() || "",
       observacoes: trip.observacoes || "",
     });
     setIsDialogOpen(true);
@@ -584,7 +591,7 @@ export default function Viagens() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 {/* Weight */}
                 <div className="space-y-2">
                   <Label htmlFor="peso_ton" className="flex items-center space-x-1">
@@ -613,6 +620,22 @@ export default function Viagens() {
                     step="0.01"
                     value={formData.volume_m3}
                     onChange={(e) => setFormData(prev => ({ ...prev, volume_m3: e.target.value }))}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                {/* Custo Extra */}
+                <div className="space-y-2">
+                  <Label htmlFor="custo_extra" className="flex items-center space-x-1">
+                    <DollarSign className="h-4 w-4" />
+                    <span>Custo Extra (R$)</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    id="custo_extra"
+                    step="0.01"
+                    value={formData.custo_extra}
+                    onChange={(e) => setFormData(prev => ({ ...prev, custo_extra: e.target.value }))}
                     placeholder="0.00"
                   />
                 </div>

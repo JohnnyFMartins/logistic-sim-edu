@@ -41,6 +41,7 @@ interface Trip {
   custo_variaveis?: number;
   custo_pedagios?: number;
   custo_fixo_rateado?: number;
+  custo_extra?: number;
   custo_total_estimado?: number;
   tempo_estimado_h?: number;
   created_at: string;
@@ -90,6 +91,7 @@ export default function ViagemDetalhe() {
           custo_variaveis,
           custo_pedagios,
           custo_fixo_rateado,
+          custo_extra,
           custo_total_estimado,
           tempo_estimado_h
         `)
@@ -488,6 +490,22 @@ export default function ViagemDetalhe() {
                   </span>
                 </div>
               </div>
+
+              {/* Extra Cost Section */}
+              {trip.custo_extra && trip.custo_extra > 0 && (
+                <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+                  <div className="flex items-center space-x-2 text-sm font-medium">
+                    <Calculator className="h-5 w-5 text-primary" />
+                    <span>Custo Extra</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-sm text-muted-foreground">Adicional</span>
+                    <span className="text-lg font-bold text-primary">
+                      R$ {trip.custo_extra?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Total Cost Section */}
               <div className="space-y-3 p-4 rounded-lg bg-primary/10 border-2 border-primary">
