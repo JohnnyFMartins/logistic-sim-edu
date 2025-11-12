@@ -22,6 +22,7 @@ import Parameters from "@/pages/Parameters";
 import ParametrosGlobais from "@/pages/ParametrosGlobais";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Documentation from "./pages/Documentation";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/parameters" element={<ProtectedRoute><SimpleLayout><Parameters /></SimpleLayout></ProtectedRoute>} />
             <Route path="/parametros-globais" element={<ProtectedRoute><SimpleLayout><ParametrosGlobais /></SimpleLayout></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><SimpleLayout><Reports /></SimpleLayout></ProtectedRoute>} />
+            <Route path="/documentation" element={<ProtectedRoute><SimpleLayout><Documentation /></SimpleLayout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SimpleLayout><Settings /></SimpleLayout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
