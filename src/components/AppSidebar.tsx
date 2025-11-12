@@ -6,8 +6,7 @@ import {
   LayoutDashboard,
   Users,
   DollarSign,
-  MapPin,
-  FileText
+  MapPin
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -33,7 +32,6 @@ const mainItems = [
 const managementItems = [
   { title: "Parâmetros", url: "/custos", icon: DollarSign },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
-  { title: "Documentação TCC", url: "/documentation", icon: FileText },
 ]
 
 export function AppSidebar() {
