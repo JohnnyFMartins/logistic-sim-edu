@@ -60,7 +60,7 @@ export default function Cargo() {
     status: "active"
   });
 
-  // Fetch cargo data
+  // Buscar dados de carga
   const { data: cargo = [], isLoading } = useQuery({
     queryKey: ["cargo"],
     queryFn: async () => {

@@ -60,7 +60,7 @@ export default function SimulationCompare() {
 
   const fetchSimulationData = async () => {
     try {
-      // Fetch simulation data
+      // Buscar dados da simulação
       const { data: simData, error: simError } = await supabase
         .from("simulacoes")
         .select("*")
@@ -71,7 +71,7 @@ export default function SimulationCompare() {
       if (simError) throw simError;
       setSimulation(simData);
 
-      // Fetch base trip data (don't filter by user_id since trip may belong to another user)
+      // Buscar dados da viagem base (não filtrar por user_id pois a viagem pode pertencer a outro usuário)
       const { data: tripData, error: tripError } = await supabase
         .from("trips")
         .select("*")

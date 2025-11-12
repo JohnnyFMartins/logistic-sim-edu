@@ -46,7 +46,7 @@ export default function ParametrosGlobais() {
     enabled: !!user?.id,
   });
 
-  // Update form data when parametros data changes
+  // Atualizar dados do formulário quando parâmetros mudarem
   useEffect(() => {
     if (parametros) {
       setFormData({

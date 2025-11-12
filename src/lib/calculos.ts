@@ -1,5 +1,5 @@
 /**
- * Shared calculation logic for frontend
+ * Lógica de cálculo compartilhada para frontend
  */
 
 export interface CalculationInput {
@@ -25,39 +25,39 @@ export interface CalculationResult {
 }
 
 export function calcularCustos(input: CalculationInput): CalculationResult {
-  // 1. Fuel consumption
+  // 1. Consumo de combustível
   const consumoCombustivelL = input.distanciaKm / input.kmPorLitro;
 
-  // 2. Fuel cost
+  // 2. Custo de combustível
   const custoCombustivel = consumoCombustivelL * input.precoDieselLitro;
 
-  // 3. Variable costs
+  // 3. Custos variáveis
   const somaCustosVariaveis = input.custosVariaveis.reduce(
     (sum, custo) => sum + Number(custo.valor_por_km),
     0
   );
   const custoVariaveis = somaCustosVariaveis * input.distanciaKm;
 
-  // 4. Tolls
+  // 4. Pedágios
   const custoPedagios = input.pedagios.reduce(
     (sum, pedagio) => sum + Number(pedagio.valor),
     0
   );
 
-  // 5. Daily fixed cost
+  // 5. Custo fixo diário
   const somaCustosFixos = input.custosFixos.reduce(
     (sum, custo) => sum + Number(custo.valor_mensal),
     0
   );
   const custoFixoRateado = somaCustosFixos / 30;
 
-  // 6. Total cost
+  // 6. Custo total
   const custoTotal = custoCombustivel + custoVariaveis + custoPedagios + custoFixoRateado;
 
-  // 7. Estimated time
+  // 7. Tempo estimado
   const tempoEstimadoH = input.distanciaKm / input.velocidadeMediaKmh;
 
-  // 8. Cost per delivery
+  // 8. Custo por entrega
   const custoPorEntrega = input.entregasNaRota
     ? custoTotal / input.entregasNaRota
     : undefined;

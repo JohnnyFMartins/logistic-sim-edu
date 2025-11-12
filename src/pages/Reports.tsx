@@ -58,7 +58,7 @@ export default function Reports() {
     }
   })
 
-  // Fetch vehicles for filter
+  // Buscar veículos para filtro
   const { data: vehicles = [] } = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
@@ -68,7 +68,7 @@ export default function Reports() {
     }
   })
 
-  // Fetch routes for filter
+  // Buscar rotas para filtro
   const { data: routes = [] } = useQuery({
     queryKey: ['routes'],
     queryFn: async () => {

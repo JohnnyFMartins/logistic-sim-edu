@@ -76,7 +76,7 @@ export default function ViagemDetalhe() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch trip details
+  // Buscar detalhes da viagem
   const { data: trip, isLoading } = useQuery({
     queryKey: ["trip", id],
     queryFn: async () => {
@@ -103,7 +103,7 @@ export default function ViagemDetalhe() {
     enabled: !!user?.id && !!id,
   });
 
-  // Fetch vehicle details
+  // Buscar detalhes do veículo
   const { data: vehicle } = useQuery({
     queryKey: ["vehicle", trip?.vehicle_id],
     queryFn: async () => {
@@ -120,7 +120,7 @@ export default function ViagemDetalhe() {
     enabled: !!trip?.vehicle_id,
   });
 
-  // Fetch route details
+  // Buscar detalhes da rota
   const { data: route } = useQuery({
     queryKey: ["route", trip?.route_id],
     queryFn: async () => {
@@ -137,7 +137,7 @@ export default function ViagemDetalhe() {
     enabled: !!trip?.route_id,
   });
 
-  // Fetch vehicle costs
+  // Buscar custos do veículo
   const { data: vehicleCosts } = useQuery({
     queryKey: ["vehicle-costs", trip?.vehicle_id],
     queryFn: async () => {
@@ -155,7 +155,7 @@ export default function ViagemDetalhe() {
     enabled: !!trip?.vehicle_id && !!user?.id,
   });
 
-  // Recalculate costs mutation
+  // Mutation para recalcular custos
   const recalculateMutation = useMutation({
     mutationFn: async () => {
       if (!id) throw new Error('ID da viagem não encontrado');

@@ -110,7 +110,7 @@ export default function Viagens() {
     observacoes: "",
   });
 
-  // Fetch trips
+  // Buscar viagens
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ["trips"],
     queryFn: async () => {
@@ -128,7 +128,7 @@ export default function Viagens() {
     enabled: !!user?.id,
   });
 
-  // Fetch vehicles for dropdown
+  // Buscar veículos para dropdown
   const { data: vehicles = [] } = useQuery({
     queryKey: ["vehicles"],
     queryFn: async () => {
@@ -146,7 +146,7 @@ export default function Viagens() {
     enabled: !!user?.id,
   });
 
-  // Fetch routes for dropdown
+  // Buscar rotas para dropdown
   const { data: routes = [] } = useQuery({
     queryKey: ["routes"],
     queryFn: async () => {
@@ -163,7 +163,7 @@ export default function Viagens() {
     enabled: !!user?.id,
   });
 
-  // Create trip mutation
+  // Mutation para criar viagem
   const createTripMutation = useMutation({
     mutationFn: async (tripData: typeof formData) => {
       if (!user?.id) throw new Error("User not authenticated");
@@ -190,14 +190,14 @@ export default function Viagens() {
       return data;
     },
     onSuccess: async (data) => {
-      // Automatically calculate trip costs
+      // Calcular custos da viagem automaticamente
       try {
         await supabase.functions.invoke('recalcular-custos-viagem', {
           body: { viagemId: data.id }
         });
       } catch (error) {
         console.error('Erro ao calcular custos automaticamente:', error);
-        // Don't show error to user, as trip was created successfully
+        // Não mostrar erro ao usuário, pois a viagem foi criada com sucesso
       }
       
       queryClient.invalidateQueries({ queryKey: ["trips"] });
@@ -218,7 +218,7 @@ export default function Viagens() {
     },
   });
 
-  // Update trip mutation
+  // Mutation para atualizar viagem
   const updateTripMutation = useMutation({
     mutationFn: async ({ id, ...tripData }: { id: string } & typeof formData) => {
       const payload = {
@@ -243,7 +243,7 @@ export default function Viagens() {
       return data;
     },
     onSuccess: async (data) => {
-      // Automatically recalculate trip costs after update
+      // Recalcular custos da viagem automaticamente após atualização
       try {
         await supabase.functions.invoke('recalcular-custos-viagem', {
           body: { viagemId: data.id }
@@ -270,7 +270,7 @@ export default function Viagens() {
     },
   });
 
-  // Delete trip mutation
+  // Mutation para deletar viagem
   const deleteTripMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -361,7 +361,7 @@ export default function Viagens() {
       return;
     }
 
-    // Validate weight capacity
+    // Validar capacidade de peso
     if (formData.peso_ton) {
       const peso = parseFloat(formData.peso_ton);
       const vehicle = vehicles.find(v => v.id === formData.vehicle_id);

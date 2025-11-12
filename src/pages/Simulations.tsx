@@ -52,7 +52,7 @@ export default function Simulations() {
 
       if (error) throw error;
       toast.success("Simulação executada com sucesso!");
-      fetchSimulations(); // Refresh data
+      fetchSimulations(); // Atualizar dados
     } catch (error) {
       console.error("Error running simulation:", error);
       toast.error("Erro ao executar simulação");
@@ -87,7 +87,7 @@ export default function Simulations() {
 
       if (error) throw error;
       toast.success("Simulação excluída com sucesso!");
-      fetchSimulations(); // Refresh data
+      fetchSimulations(); // Atualizar dados
     } catch (error) {
       console.error("Error deleting simulation:", error);
       toast.error("Erro ao excluir simulação");
