@@ -100,6 +100,7 @@ export default function Viagens() {
     peso_ton: string;
     volume_m3: string;
     custo_extra: string;
+    custo_extra_descricao: string;
     observacoes: string;
   }>({
     vehicle_id: "",
@@ -110,6 +111,7 @@ export default function Viagens() {
     peso_ton: "",
     volume_m3: "",
     custo_extra: "",
+    custo_extra_descricao: "",
     observacoes: "",
   });
 
@@ -180,6 +182,7 @@ export default function Viagens() {
         peso_ton: tripData.peso_ton ? parseFloat(tripData.peso_ton) : null,
         volume_m3: tripData.volume_m3 ? parseFloat(tripData.volume_m3) : null,
         custo_extra: tripData.custo_extra ? parseFloat(tripData.custo_extra) : 0,
+        custo_extra_descricao: tripData.custo_extra_descricao || null,
         observacoes: tripData.observacoes || null,
         user_id: user.id
       };
@@ -234,6 +237,7 @@ export default function Viagens() {
         peso_ton: tripData.peso_ton ? parseFloat(tripData.peso_ton) : null,
         volume_m3: tripData.volume_m3 ? parseFloat(tripData.volume_m3) : null,
         custo_extra: tripData.custo_extra ? parseFloat(tripData.custo_extra) : 0,
+        custo_extra_descricao: tripData.custo_extra_descricao || null,
         observacoes: tripData.observacoes || null,
       };
 
@@ -312,6 +316,7 @@ export default function Viagens() {
       peso_ton: "",
       volume_m3: "",
       custo_extra: "",
+      custo_extra_descricao: "",
       observacoes: "",
     });
     setEditingTrip(null);
@@ -342,6 +347,7 @@ export default function Viagens() {
       peso_ton: trip.peso_ton?.toString() || "",
       volume_m3: trip.volume_m3?.toString() || "",
       custo_extra: (trip as any).custo_extra?.toString() || "",
+      custo_extra_descricao: (trip as any).custo_extra_descricao || "",
       observacoes: trip.observacoes || "",
     });
     setIsDialogOpen(true);
@@ -660,6 +666,20 @@ export default function Viagens() {
                   </Select>
                 </div>
               </div>
+
+              {/* Extra Cost Description */}
+              {formData.custo_extra && parseFloat(formData.custo_extra) > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="custo_extra_descricao">Descrição do Custo Extra</Label>
+                  <Textarea
+                    id="custo_extra_descricao"
+                    value={formData.custo_extra_descricao}
+                    onChange={(e) => setFormData(prev => ({ ...prev, custo_extra_descricao: e.target.value }))}
+                    placeholder="Ex: Despesas de alimentação, hospedagem, taxa de urgência..."
+                    rows={2}
+                  />
+                </div>
+              )}
 
               {/* Observations */}
               <div className="space-y-2">
