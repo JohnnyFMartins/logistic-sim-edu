@@ -417,33 +417,10 @@ export default function ViagemDetalhe() {
                   <Truck className="h-4 w-4 text-muted-foreground" />
                   <span>Custos do Veículo (Rateio Diário)</span>
                 </div>
-                <div className="pl-6 space-y-2">
-                  {vehicleCosts && vehicleCosts.length > 0 ? (
-                    <>
-                      {vehicleCosts.map((cost) => (
-                        <div key={cost.id} className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground">{cost.nome}</span>
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground">
-                              R$ {cost.valor_mensal.toFixed(2)}/mês
-                            </p>
-                            <p className="font-medium">
-                              R$ {(Number(cost.valor_mensal) / 30).toFixed(2)}/dia
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      <Separator className="my-2" />
-                      <div className="flex justify-between items-center text-sm font-medium pt-2">
-                        <span>Total Diário:</span>
-                        <span>R$ {trip.custo_fixo_rateado?.toFixed(2) || '0.00'}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Nenhum custo cadastrado para este veículo
-                    </p>
-                  )}
+                <div className="pl-6">
+                  <p className="text-sm font-medium">
+                    R$ {trip.custo_fixo_rateado?.toFixed(2) || '0.00'}
+                  </p>
                 </div>
               </div>
 
