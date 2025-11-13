@@ -158,6 +158,23 @@ export default function ViagemDetalhe() {
     enabled: !!trip?.vehicle_id && !!user?.id,
   });
 
+  // Buscar detalhes da carga
+  const { data: cargoDetails } = useQuery({
+    queryKey: ["cargo", (trip as any)?.cargo_id],
+    queryFn: async () => {
+      if (!(trip as any)?.cargo_id) return null;
+      const { data, error } = await supabase
+        .from("cargo")
+        .select("*")
+        .eq("id", (trip as any).cargo_id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!(trip as any)?.cargo_id,
+  });
+
   // Mutation para recalcular custos
   const recalculateMutation = useMutation({
     mutationFn: async () => {
@@ -415,6 +432,48 @@ export default function ViagemDetalhe() {
               )}
             </CardContent>
           </Card>
+
+          {/* Cargo Information */}
+          {cargoDetails && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Package className="h-5 w-5" />
+                  <span>Carga</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground">Nome</span>
+                  <p className="text-base font-medium">{cargoDetails.name}</p>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Peso</span>
+                  <span className="font-medium">{cargoDetails.weight} kg</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Tipo</span>
+                  <span className="font-medium capitalize">{cargoDetails.type}</span>
+                </div>
+                {cargoDetails.value > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-muted-foreground">Valor</span>
+                    <span className="font-medium">R$ {cargoDetails.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+                {cargoDetails.description && (
+                  <>
+                    <Separator />
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Descrição</span>
+                      <p className="text-sm mt-1">{cargoDetails.description}</p>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right Column - Operational Calculations */}

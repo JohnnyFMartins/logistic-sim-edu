@@ -94,6 +94,7 @@ export default function Viagens() {
   const [formData, setFormData] = useState<{
     vehicle_id: string;
     route_id: string;
+    cargo_id: string;
     start_date: string;
     end_date: string;
     status: 'Planejada' | 'Em_Andamento' | 'Concluída';
@@ -105,6 +106,7 @@ export default function Viagens() {
   }>({
     vehicle_id: "",
     route_id: "",
+    cargo_id: "",
     start_date: "",
     end_date: "",
     status: "Planejada",
@@ -168,6 +170,24 @@ export default function Viagens() {
     enabled: !!user?.id,
   });
 
+  // Buscar cargas para dropdown
+  const { data: cargo = [] } = useQuery({
+    queryKey: ["cargo"],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("cargo")
+        .select("id, name, weight, type, status")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   // Mutation para criar viagem
   const createTripMutation = useMutation({
     mutationFn: async (tripData: typeof formData) => {
@@ -176,6 +196,7 @@ export default function Viagens() {
       const payload = {
         vehicle_id: tripData.vehicle_id,
         route_id: tripData.route_id,
+        cargo_id: tripData.cargo_id || null,
         start_date: tripData.start_date,
         end_date: tripData.end_date,
         status: tripData.status,
@@ -231,6 +252,7 @@ export default function Viagens() {
       const payload = {
         vehicle_id: tripData.vehicle_id,
         route_id: tripData.route_id,
+        cargo_id: tripData.cargo_id || null,
         start_date: tripData.start_date,
         end_date: tripData.end_date,
         status: tripData.status,
@@ -310,6 +332,7 @@ export default function Viagens() {
     setFormData({
       vehicle_id: "",
       route_id: "",
+      cargo_id: "",
       start_date: "",
       end_date: "",
       status: "Planejada",
@@ -341,6 +364,7 @@ export default function Viagens() {
     setFormData({
       vehicle_id: trip.vehicle_id,
       route_id: trip.route_id,
+      cargo_id: (trip as any).cargo_id || "",
       start_date: trip.start_date,
       end_date: trip.end_date,
       status: trip.status,
@@ -596,6 +620,40 @@ export default function Viagens() {
                           </SelectItem>
                         ))
                       )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Cargo Selection */}
+                <div className="space-y-2 col-span-2">
+                  <Label htmlFor="cargo_id">Carga (Opcional)</Label>
+                  <Select 
+                    value={formData.cargo_id} 
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, cargo_id: value }));
+                      // Auto-fill weight from cargo
+                      const selectedCargo = cargo.find(c => c.id === value);
+                      if (selectedCargo && !formData.peso_ton) {
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          cargo_id: value,
+                          peso_ton: (selectedCargo.weight / 1000).toString() // Convert kg to ton
+                        }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma carga (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhuma carga</SelectItem>
+                      {cargo.map((item: any) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name} - {item.weight}kg ({item.type})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

@@ -349,6 +349,7 @@ export type Database = {
       }
       trips: {
         Row: {
+          cargo_id: string | null
           consumo_combustivel_l: number | null
           created_at: string
           custo_combustivel: number | null
@@ -373,6 +374,7 @@ export type Database = {
           volume_m3: number | null
         }
         Insert: {
+          cargo_id?: string | null
           consumo_combustivel_l?: number | null
           created_at?: string
           custo_combustivel?: number | null
@@ -397,6 +399,7 @@ export type Database = {
           volume_m3?: number | null
         }
         Update: {
+          cargo_id?: string | null
           consumo_combustivel_l?: number | null
           created_at?: string
           custo_combustivel?: number | null
@@ -420,7 +423,15 @@ export type Database = {
           vehicle_id?: string
           volume_m3?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trips_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "cargo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicles: {
         Row: {
