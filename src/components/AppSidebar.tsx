@@ -3,7 +3,7 @@ import {
   Route, 
   Play,
   BarChart3, 
-  LayoutDashboard,
+  Home,
   Users,
   DollarSign,
   MapPin,
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar"
 
 const mainItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Início", url: "/", icon: Home },
   { title: "Veículos", url: "/vehicles", icon: Truck },
   { title: "Rotas", url: "/routes", icon: Route },
   { title: "Cargas", url: "/cargo", icon: Package },
