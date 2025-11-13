@@ -3,15 +3,77 @@ import { AppSidebar } from "@/components/AppSidebar"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
-import { LogOut } from "lucide-react"
+import { LogOut, Truck, Route, MapPin, Play, DollarSign, BarChart3, Package } from "lucide-react"
 import { ReactNode } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 
 interface AppLayoutProps {
   children: ReactNode
 }
 
+const menuItems = [
+  { 
+    title: "Veículos", 
+    url: "/vehicles", 
+    icon: Truck,
+    bgClass: "bg-primary/20 hover:bg-primary/30",
+    iconClass: "text-primary",
+    shadowClass: "group-hover:shadow-primary/50"
+  },
+  { 
+    title: "Rotas", 
+    url: "/routes", 
+    icon: Route,
+    bgClass: "bg-success/20 hover:bg-success/30",
+    iconClass: "text-success",
+    shadowClass: "group-hover:shadow-success/50"
+  },
+  { 
+    title: "Cargas", 
+    url: "/cargo", 
+    icon: Package,
+    bgClass: "bg-info/20 hover:bg-info/30",
+    iconClass: "text-info",
+    shadowClass: "group-hover:shadow-info/50"
+  },
+  { 
+    title: "Viagens", 
+    url: "/viagens", 
+    icon: MapPin,
+    bgClass: "bg-warning/20 hover:bg-warning/30",
+    iconClass: "text-warning",
+    shadowClass: "group-hover:shadow-warning/50"
+  },
+  { 
+    title: "Simulações", 
+    url: "/simulations", 
+    icon: Play,
+    bgClass: "bg-primary/20 hover:bg-primary/30",
+    iconClass: "text-primary",
+    shadowClass: "group-hover:shadow-primary/50"
+  },
+  { 
+    title: "Parâmetros", 
+    url: "/custos", 
+    icon: DollarSign,
+    bgClass: "bg-success/20 hover:bg-success/30",
+    iconClass: "text-success",
+    shadowClass: "group-hover:shadow-success/50"
+  },
+  { 
+    title: "Relatórios", 
+    url: "/reports", 
+    icon: BarChart3,
+    bgClass: "bg-warning/20 hover:bg-warning/30",
+    iconClass: "text-warning",
+    shadowClass: "group-hover:shadow-warning/50"
+  },
+];
+
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const getUserInitials = () => {
     if (user?.user_metadata?.full_name) {
@@ -61,6 +123,43 @@ export function AppLayout({ children }: AppLayoutProps) {
               </Button>
             </div>
           </header>
+
+          {/* Icon Menu - Horizontal */}
+          <div className="border-b bg-card/50 py-4">
+            <div className="px-6">
+              <div className="flex gap-6 justify-center flex-wrap">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.title}
+                    onClick={() => navigate(item.url)}
+                    className={`flex flex-col items-center gap-2 group transition-all hover:scale-110 ${
+                      location.pathname === item.url || location.pathname.startsWith(item.url + '/') 
+                        ? 'opacity-100' 
+                        : 'opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <div className={`
+                      w-14 h-14 rounded-full 
+                      ${item.bgClass}
+                      flex items-center justify-center 
+                      transition-all duration-300
+                      shadow-lg hover:shadow-xl
+                      ${item.shadowClass}
+                      ${location.pathname === item.url || location.pathname.startsWith(item.url + '/') 
+                        ? 'ring-2 ring-primary ring-offset-2' 
+                        : ''
+                      }
+                    `}>
+                      <item.icon className={`w-7 h-7 ${item.iconClass}`} />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-wide">
+                      {item.title}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Main Content */}
           <main className="flex-1 p-6">
