@@ -124,42 +124,44 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </header>
 
-          {/* Icon Menu - Horizontal */}
-          <div className="border-b bg-card/50 py-4">
-            <div className="px-6">
-              <div className="flex gap-6 justify-center flex-wrap">
-                {menuItems.map((item) => (
-                  <button
-                    key={item.title}
-                    onClick={() => navigate(item.url)}
-                    className={`flex flex-col items-center gap-2 group transition-all hover:scale-110 ${
-                      location.pathname === item.url || location.pathname.startsWith(item.url + '/') 
-                        ? 'opacity-100' 
-                        : 'opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <div className={`
-                      w-14 h-14 rounded-full 
-                      ${item.bgClass}
-                      flex items-center justify-center 
-                      transition-all duration-300
-                      shadow-lg hover:shadow-xl
-                      ${item.shadowClass}
-                      ${location.pathname === item.url || location.pathname.startsWith(item.url + '/') 
-                        ? 'ring-2 ring-primary ring-offset-2' 
-                        : ''
-                      }
-                    `}>
-                      <item.icon className={`w-7 h-7 ${item.iconClass}`} />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-wide">
-                      {item.title}
-                    </span>
-                  </button>
-                ))}
+          {/* Icon Menu - Horizontal - Only show on non-home pages */}
+          {location.pathname !== '/' && (
+            <div className="border-b bg-card/50 py-4">
+              <div className="px-6">
+                <div className="flex gap-6 justify-center flex-wrap">
+                  {menuItems.map((item) => (
+                    <button
+                      key={item.title}
+                      onClick={() => navigate(item.url)}
+                      className={`flex flex-col items-center gap-2 group transition-all hover:scale-110 ${
+                        location.pathname === item.url || location.pathname.startsWith(item.url + '/') 
+                          ? 'opacity-100' 
+                          : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <div className={`
+                        w-14 h-14 rounded-full 
+                        ${item.bgClass}
+                        flex items-center justify-center 
+                        transition-all duration-300
+                        shadow-lg hover:shadow-xl
+                        ${item.shadowClass}
+                        ${location.pathname === item.url || location.pathname.startsWith(item.url + '/') 
+                          ? 'ring-2 ring-primary ring-offset-2' 
+                          : ''
+                        }
+                      `}>
+                        <item.icon className={`w-7 h-7 ${item.iconClass}`} />
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-wide">
+                        {item.title}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Main Content */}
           <main className="flex-1 p-6">
