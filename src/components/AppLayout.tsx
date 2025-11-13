@@ -3,9 +3,17 @@ import { AppSidebar } from "@/components/AppSidebar"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
-import { LogOut, Truck, Route, MapPin, Play, DollarSign, BarChart3, Package } from "lucide-react"
-import { ReactNode } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { LogOut, Truck, Route, MapPin, Play, DollarSign, BarChart3, Package, Home } from "lucide-react"
+import { ReactNode, useMemo } from "react"
+import { useNavigate, useLocation, Link } from "react-router-dom"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 interface AppLayoutProps {
   children: ReactNode
@@ -87,6 +95,41 @@ export function AppLayout({ children }: AppLayoutProps) {
     return user?.email?.[0]?.toUpperCase() || 'U';
   };
 
+  const getPageTitle = (pathname: string): string => {
+    const routes: Record<string, string> = {
+      '/': 'Início',
+      '/vehicles': 'Veículos',
+      '/routes': 'Rotas',
+      '/cargo': 'Cargas',
+      '/viagens': 'Viagens',
+      '/simulations': 'Simulações',
+      '/simulations/create': 'Nova Simulação',
+      '/simulations/compare': 'Comparar Simulações',
+      '/custos': 'Parâmetros',
+      '/parameters': 'Parâmetros',
+      '/parametros-globais': 'Parâmetros Globais',
+      '/reports': 'Relatórios',
+      '/settings': 'Configurações',
+    };
+    return routes[pathname] || 'Página';
+  };
+
+  const breadcrumbs = useMemo(() => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    const crumbs = [{ label: 'Início', path: '/' }];
+    
+    let currentPath = '';
+    pathSegments.forEach((segment) => {
+      currentPath += `/${segment}`;
+      crumbs.push({
+        label: getPageTitle(currentPath),
+        path: currentPath,
+      });
+    });
+    
+    return crumbs;
+  }, [location.pathname]);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -159,6 +202,35 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Breadcrumbs - Only show on non-home pages */}
+          {location.pathname !== '/' && (
+            <div className="bg-background border-b min-h-[52px] flex items-center">
+              <div className="px-6 py-3 w-full">
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    {breadcrumbs.map((crumb, index) => {
+                      const isLast = index === breadcrumbs.length - 1;
+                      return (
+                        <div key={crumb.path} className="contents">
+                          <BreadcrumbItem>
+                            {isLast ? (
+                              <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                            ) : (
+                              <BreadcrumbLink asChild>
+                                <Link to={crumb.path}>{crumb.label}</Link>
+                              </BreadcrumbLink>
+                            )}
+                          </BreadcrumbItem>
+                          {!isLast && <BreadcrumbSeparator />}
+                        </div>
+                      );
+                    })}
+                  </BreadcrumbList>
+                </Breadcrumb>
               </div>
             </div>
           )}
