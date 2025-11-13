@@ -32,9 +32,9 @@ const menuItems = [
     title: "Cargas", 
     url: "/cargo", 
     icon: Package,
-    bgClass: "bg-info/20 hover:bg-info/30",
-    iconClass: "text-info",
-    shadowClass: "group-hover:shadow-info/50"
+    bgClass: "bg-amber-500/20 hover:bg-amber-500/30",
+    iconClass: "text-amber-700",
+    shadowClass: "group-hover:shadow-amber-500/50"
   },
   { 
     title: "Viagens", 
