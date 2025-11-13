@@ -6,7 +6,8 @@ import {
   LayoutDashboard,
   Users,
   DollarSign,
-  MapPin
+  MapPin,
+  Package
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -25,6 +26,7 @@ const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Veículos", url: "/vehicles", icon: Truck },
   { title: "Rotas", url: "/routes", icon: Route },
+  { title: "Cargas", url: "/cargo", icon: Package },
   { title: "Viagens", url: "/viagens", icon: MapPin },
   { title: "Simulações", url: "/simulations", icon: Play },
 ]

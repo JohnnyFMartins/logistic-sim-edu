@@ -18,7 +18,6 @@ export default function Custos() {
   const [formData, setFormData] = useState({
     preco_diesel_litro: "",
     velocidade_media_kmh: "",
-    moeda: "R$",
   });
 
   useEffect(() => {
@@ -41,7 +40,6 @@ export default function Custos() {
         setFormData({
           preco_diesel_litro: data.preco_diesel_litro.toString(),
           velocidade_media_kmh: data.velocidade_media_kmh.toString(),
-          moeda: data.moeda,
         });
       }
     } catch (error) {
@@ -58,7 +56,6 @@ export default function Custos() {
       user_id: user?.id,
       preco_diesel_litro: parseFloat(formData.preco_diesel_litro),
       velocidade_media_kmh: parseFloat(formData.velocidade_media_kmh),
-      moeda: formData.moeda,
     };
 
     try {
@@ -154,18 +151,6 @@ export default function Custos() {
                 value={formData.velocidade_media_kmh}
                 onChange={(e) => handleInputChange("velocidade_media_kmh", e.target.value)}
                 placeholder="60"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="moeda">Moeda *</Label>
-              <Input
-                id="moeda"
-                type="text"
-                value={formData.moeda}
-                onChange={(e) => handleInputChange("moeda", e.target.value)}
-                placeholder="R$"
                 required
               />
             </div>
