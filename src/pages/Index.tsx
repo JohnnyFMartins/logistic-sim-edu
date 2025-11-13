@@ -5,7 +5,8 @@ import {
   MapPin, 
   Play,
   DollarSign, 
-  BarChart3
+  BarChart3,
+  Package
 } from "lucide-react"
 
 const Index = () => {
@@ -27,6 +28,14 @@ const Index = () => {
       bgClass: "bg-success/20 hover:bg-success/30",
       iconClass: "text-success",
       shadowClass: "group-hover:shadow-success/50"
+    },
+    { 
+      title: "Cargas", 
+      url: "/cargo", 
+      icon: Package,
+      bgClass: "bg-info/20 hover:bg-info/30",
+      iconClass: "text-info",
+      shadowClass: "group-hover:shadow-info/50"
     },
     { 
       title: "Viagens", 
