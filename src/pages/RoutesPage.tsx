@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, MapPin, Clock, Search, Route, Upload, Download } fr
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { CSVImportDialog } from '@/components/CSVImportDialog'
+import { TooltipInfo } from '@/components/TooltipInfo'
 
 interface Route {
   id: string
@@ -62,13 +63,17 @@ const RouteForm = ({
     
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
-        <Label htmlFor="distancia_km">Distância (km)</Label>
+        <div className="flex items-center">
+          <Label htmlFor="distancia_km">Distância (km)</Label>
+          <TooltipInfo content="Distância total do percurso em quilômetros. Use ferramentas como Google Maps para medir rotas reais. Ex: 150 km é a distância entre São Paulo e Campinas." />
+        </div>
         <Input
           id="distancia_km"
           type="number"
           step="0.01"
           min="0.01"
-          placeholder="15.50"
+          max="10000"
+          placeholder="150.00"
           value={formData.distancia_km}
           onChange={(e) => setFormData({ ...formData, distancia_km: e.target.value })}
           required
@@ -76,12 +81,16 @@ const RouteForm = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="tempo_estimado_h">Tempo estimado (horas)</Label>
+        <div className="flex items-center">
+          <Label htmlFor="tempo_estimado_h">Tempo estimado (horas)</Label>
+          <TooltipInfo content="Tempo previsto para completar o percurso. Considere velocidade média e condições de tráfego. Ex: 2,5 horas = 2 horas e 30 minutos." />
+        </div>
         <Input
           id="tempo_estimado_h"
           type="number"
           step="0.01"
           min="0.01"
+          max="100"
           placeholder="2.50"
           value={formData.tempo_estimado_h}
           onChange={(e) => setFormData({ ...formData, tempo_estimado_h: e.target.value })}
@@ -91,17 +100,20 @@ const RouteForm = ({
     </div>
 
     <div className="space-y-2">
-      <Label htmlFor="valor_pedagio">Valor do Pedágio (R$)</Label>
+      <div className="flex items-center">
+        <Label htmlFor="valor_pedagio">Valor do Pedágio (R$)</Label>
+        <TooltipInfo content="Soma de todos os pedágios da rota. Verifique os valores atualizados no site das concessionárias. Ex: Se passar por 3 pedágios de R$ 15,00 cada, o total é R$ 45,00." />
+      </div>
       <Input
         id="valor_pedagio"
         type="number"
         step="0.01"
         min="0"
+        max="1000"
         placeholder="0.00"
         value={formData.valor_pedagio}
         onChange={(e) => setFormData({ ...formData, valor_pedagio: e.target.value })}
       />
-      <p className="text-xs text-muted-foreground">Valor total dos pedágios neste trecho</p>
     </div>
     
     <DialogFooter>
