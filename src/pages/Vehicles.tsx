@@ -37,6 +37,7 @@ import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
 import { CSVImportDialog } from "@/components/CSVImportDialog"
+import { TooltipInfo } from "@/components/TooltipInfo"
 
 type VehicleStatus = 'Disponível' | 'Em_Manutenção' | 'Em_Uso'
 
@@ -77,14 +78,18 @@ const VehicleForm = ({
       />
     </div>
     
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
-        <Label htmlFor="capacidade_ton">Capacidade (ton)</Label>
+        <div className="flex items-center">
+          <Label htmlFor="capacidade_ton">Capacidade (toneladas)</Label>
+          <TooltipInfo content="Peso máximo que o veículo pode transportar. Uma tonelada equivale a 1.000 kg. Ex: Se o caminhão aguenta 40 toneladas, ele pode carregar 40.000 kg de carga." />
+        </div>
         <Input
           id="capacidade_ton"
           type="number"
           step="0.01"
           min="0.1"
+          max="100"
           placeholder="40.00"
           value={formData.capacidade_ton}
           onChange={(e) => setFormData({ ...formData, capacidade_ton: e.target.value })}
@@ -92,12 +97,16 @@ const VehicleForm = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="km_por_litro">Km/litro</Label>
+        <div className="flex items-center">
+          <Label htmlFor="km_por_litro">Consumo (Km/litro)</Label>
+          <TooltipInfo content="Quantos quilômetros o veículo percorre com 1 litro de diesel. Ex: Se consome 3,2 km/l, significa que a cada litro ele anda 3,2 km. Quanto maior esse número, mais econômico é o veículo." />
+        </div>
         <Input
           id="km_por_litro"
           type="number"
           step="0.01"
           min="0.1"
+          max="20"
           placeholder="3.20"
           value={formData.km_por_litro}
           onChange={(e) => setFormData({ ...formData, km_por_litro: e.target.value })}

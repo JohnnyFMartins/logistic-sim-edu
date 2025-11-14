@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Settings } from "lucide-react";
+import { TooltipInfo } from "@/components/TooltipInfo";
 
 export default function Custos() {
   const { user } = useAuth();
@@ -127,12 +128,16 @@ export default function Custos() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="preco_diesel_litro">Preço do Diesel (por litro) *</Label>
+              <div className="flex items-center">
+                <Label htmlFor="preco_diesel_litro">Preço do Diesel (por litro) *</Label>
+                <TooltipInfo content="Valor atual do litro de diesel na sua região. Este preço varia conforme o posto e localização. Consulte sites como ANP para valores de referência." />
+              </div>
               <Input
                 id="preco_diesel_litro"
                 type="number"
                 step="0.01"
                 min="0"
+                max="20"
                 value={formData.preco_diesel_litro}
                 onChange={(e) => handleInputChange("preco_diesel_litro", e.target.value)}
                 placeholder="5.50"
@@ -141,7 +146,10 @@ export default function Custos() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="velocidade_media_kmh">Velocidade Média (km/h) *</Label>
+              <div className="flex items-center">
+                <Label htmlFor="velocidade_media_kmh">Velocidade Média (km/h) *</Label>
+                <TooltipInfo content="Velocidade média esperada nas viagens, considerando tráfego, paradas e condições da rodovia. Ex: Em rodovias, use 60-80 km/h; em áreas urbanas, 30-40 km/h." />
+              </div>
               <Input
                 id="velocidade_media_kmh"
                 type="number"

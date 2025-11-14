@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { FormulaCard } from "@/components/FormulaCard";
 
 interface Trip {
   id: string;
@@ -607,6 +608,57 @@ export default function ViagemDetalhe() {
         </Card>
       )}
 
+      {/* Fórmulas de Cálculo */}
+      {route && (
+        <FormulaCard
+          title="📐 Como os Custos foram Calculados?"
+          description="Veja as fórmulas e exemplos usados para calcular os custos desta viagem"
+          formulas={[
+            {
+              label: "1. Consumo de Combustível",
+              formula: "Consumo (L) = Distância (km) ÷ Consumo do Veículo (km/L)",
+              example: trip.consumo_combustivel_l && route.distancia_km 
+                ? `${route.distancia_km} km ÷ ${(route.distancia_km / trip.consumo_combustivel_l).toFixed(2)} km/L = ${trip.consumo_combustivel_l.toFixed(2)} L`
+                : "Dados não disponíveis"
+            },
+            {
+              label: "2. Custo de Combustível",
+              formula: "Custo (R$) = Consumo (L) × Preço do Diesel (R$/L)",
+              example: trip.custo_combustivel && trip.consumo_combustivel_l
+                ? `${trip.consumo_combustivel_l.toFixed(2)} L × R$ ${(trip.custo_combustivel / trip.consumo_combustivel_l).toFixed(2)}/L = R$ ${trip.custo_combustivel.toFixed(2)}`
+                : "Dados não disponíveis"
+            },
+            {
+              label: "3. Custos Variáveis",
+              formula: "Custos (R$) = Soma dos Custos por Km × Distância",
+              example: trip.custo_variaveis 
+                ? `Manutenção, pneus e outros = R$ ${trip.custo_variaveis.toFixed(2)}`
+                : "Dados não disponíveis"
+            },
+            {
+              label: "4. Custo Fixo Rateado",
+              formula: "Custo (R$) = (Custos Mensais ÷ 30) × Tempo de Viagem (dias)",
+              example: trip.custo_fixo_rateado
+                ? `Seguro, IPVA e licenciamento = R$ ${trip.custo_fixo_rateado.toFixed(2)}`
+                : "Dados não disponíveis"
+            },
+            {
+              label: "5. Custo Total",
+              formula: "Total = Combustível + Variáveis + Pedágios + Fixo",
+              example: trip.custo_total_estimado
+                ? `R$ ${trip.custo_total_estimado.toFixed(2)}`
+                : "Dados não disponíveis"
+            },
+            {
+              label: "6. Tempo Estimado",
+              formula: "Tempo (h) = Distância (km) ÷ Velocidade Média (km/h)",
+              example: trip.tempo_estimado_h && route.distancia_km
+                ? `${route.distancia_km} km ÷ ${(route.distancia_km / trip.tempo_estimado_h).toFixed(0)} km/h = ${trip.tempo_estimado_h.toFixed(1)} horas`
+                : "Dados não disponíveis"
+            }
+          ]}
+        />
+      )}
 
       {/* Actions */}
       <div className="flex space-x-2">
