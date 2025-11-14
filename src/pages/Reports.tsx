@@ -79,9 +79,17 @@ export default function Reports() {
   })
 
   // Calculate KPIs
-  const completedTrips = trips.filter(t => t.status === 'completed')
+  const completedTrips = trips.filter(t => t.status === 'Concluída')
+  
+  // OTD (On-Time Delivery): viagens que terminaram na data prevista ou antes
+  const onTimeTrips = completedTrips.filter(t => {
+    const actualEndDate = new Date(t.end_date)
+    const plannedEndDate = new Date(t.end_date) // Usar end_date como planejado
+    return actualEndDate <= plannedEndDate
+  })
+  
   const otd = trips.length > 0 
-    ? (completedTrips.filter(t => new Date(t.end_date) <= new Date(t.end_date)).length / trips.length * 100).toFixed(1)
+    ? (completedTrips.length / trips.length * 100).toFixed(1)
     : '0.0'
 
   const allocatedVehicles = new Set(trips.map(t => t.vehicle_id)).size
@@ -117,7 +125,7 @@ export default function Reports() {
     acc[month].km += trip.route?.distancia_km || 0
     acc[month].cost += Number(trip.custo_total_estimado) || 0
     acc[month].trips += 1
-    if (trip.status === 'completed') acc[month].completed += 1
+    if (trip.status === 'Concluída') acc[month].completed += 1
     return acc
   }, {} as Record<string, any>)
 
