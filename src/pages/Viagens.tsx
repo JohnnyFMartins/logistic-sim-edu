@@ -84,6 +84,14 @@ interface Route {
   tempo_estimado_h: number;
 }
 
+interface Cargo {
+  id: string;
+  name: string;
+  weight: number;
+  type: string;
+  status: string;
+}
+
 export default function Viagens() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -183,7 +191,7 @@ export default function Viagens() {
         .order("name");
       
       if (error) throw error;
-      return data;
+      return data as Cargo[];
     },
     enabled: !!user?.id,
   });
@@ -196,7 +204,7 @@ export default function Viagens() {
       const payload = {
         vehicle_id: tripData.vehicle_id,
         route_id: tripData.route_id,
-        cargo_id: tripData.cargo_id || null,
+        cargo_id: tripData.cargo_id && tripData.cargo_id !== "none" ? tripData.cargo_id : null,
         start_date: tripData.start_date,
         end_date: tripData.end_date,
         status: tripData.status,
@@ -252,7 +260,7 @@ export default function Viagens() {
       const payload = {
         vehicle_id: tripData.vehicle_id,
         route_id: tripData.route_id,
-        cargo_id: tripData.cargo_id || null,
+        cargo_id: tripData.cargo_id && tripData.cargo_id !== "none" ? tripData.cargo_id : null,
         start_date: tripData.start_date,
         end_date: tripData.end_date,
         status: tripData.status,
@@ -332,7 +340,7 @@ export default function Viagens() {
     setFormData({
       vehicle_id: "",
       route_id: "",
-      cargo_id: "",
+      cargo_id: "none",
       start_date: "",
       end_date: "",
       status: "Planejada",
@@ -364,7 +372,7 @@ export default function Viagens() {
     setFormData({
       vehicle_id: trip.vehicle_id,
       route_id: trip.route_id,
-      cargo_id: (trip as any).cargo_id || "",
+      cargo_id: (trip as any).cargo_id || "none",
       start_date: trip.start_date,
       end_date: trip.end_date,
       status: trip.status,
@@ -634,13 +642,15 @@ export default function Viagens() {
                     onValueChange={(value) => {
                       setFormData(prev => ({ ...prev, cargo_id: value }));
                       // Auto-fill weight from cargo
-                      const selectedCargo = cargo.find(c => c.id === value);
-                      if (selectedCargo && !formData.peso_ton) {
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          cargo_id: value,
-                          peso_ton: (selectedCargo.weight / 1000).toString() // Convert kg to ton
-                        }));
+                      if (value !== "none") {
+                        const selectedCargo = cargo.find(c => c.id === value);
+                        if (selectedCargo && !formData.peso_ton) {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            cargo_id: value,
+                            peso_ton: (selectedCargo.weight / 1000).toString() // Convert kg to ton
+                          }));
+                        }
                       }
                     }}
                   >
@@ -648,8 +658,8 @@ export default function Viagens() {
                       <SelectValue placeholder="Selecione uma carga (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhuma carga</SelectItem>
-                      {cargo.map((item: any) => (
+                      <SelectItem value="none">Nenhuma carga</SelectItem>
+                      {cargo.map((item) => (
                         <SelectItem key={item.id} value={item.id}>
                           {item.name} - {item.weight}kg ({item.type})
                         </SelectItem>
