@@ -99,7 +99,7 @@ export default function SimulationCompare() {
       setBaseTrip(tripWithRelations);
     } catch (error) {
       console.error("Error fetching simulation data:", error);
-      toast.error("Erro ao carregar dados da simulação");
+      toast.error("❌ Erro ao carregar dados da simulação. Verifique se a simulação ainda existe ou se foi executada corretamente.");
       navigate("/simulations");
     }
     setLoading(false);

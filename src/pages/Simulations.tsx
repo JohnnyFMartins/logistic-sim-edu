@@ -39,7 +39,7 @@ export default function Simulations() {
       setSimulations(data || []);
     } catch (error) {
       console.error("Error fetching simulations:", error);
-      toast.error("Erro ao carregar simulações");
+      toast.error("❌ Erro ao carregar simulações. Verifique sua conexão ou se você já criou simulações no sistema.");
     }
     setLoading(false);
   };
@@ -55,7 +55,7 @@ export default function Simulations() {
       fetchSimulations(); // Atualizar dados
     } catch (error) {
       console.error("Error running simulation:", error);
-      toast.error("Erro ao executar simulação");
+      toast.error("❌ Erro ao executar simulação. Verifique se a viagem base ainda existe e se todos os parâmetros estão válidos. Tente novamente.");
     }
   };
 
@@ -90,7 +90,7 @@ export default function Simulations() {
       fetchSimulations(); // Atualizar dados
     } catch (error) {
       console.error("Error deleting simulation:", error);
-      toast.error("Erro ao excluir simulação");
+      toast.error("❌ Erro ao excluir simulação. Ela pode estar em uso em comparações ou relatórios. Tente novamente mais tarde.");
     }
   };
 

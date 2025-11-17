@@ -140,8 +140,21 @@ export default function Custos() {
                 max="20"
                 value={formData.preco_diesel_litro}
                 onChange={(e) => handleInputChange("preco_diesel_litro", e.target.value)}
+                onInvalid={(e) => {
+                  const input = e.target as HTMLInputElement;
+                  if (input.validity.rangeOverflow) {
+                    input.setCustomValidity('⛽ O preço do diesel não pode ser maior que R$ 20/litro. Verifique se você não digitou errado.');
+                  } else {
+                    input.setCustomValidity('⛽ Digite um preço válido para o diesel (mínimo R$ 0).');
+                  }
+                }}
+                onInput={(e) => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity('');
+                }}
                 placeholder="5.50"
                 required
+                title="Preço atual do diesel. Consulte ANP ou postos locais."
               />
             </div>
 
@@ -158,8 +171,23 @@ export default function Custos() {
                 max="120"
                 value={formData.velocidade_media_kmh}
                 onChange={(e) => handleInputChange("velocidade_media_kmh", e.target.value)}
+                onInvalid={(e) => {
+                  const input = e.target as HTMLInputElement;
+                  if (input.validity.rangeUnderflow) {
+                    input.setCustomValidity('🚛 A velocidade mínima é 1 km/h.');
+                  } else if (input.validity.rangeOverflow) {
+                    input.setCustomValidity('🚛 A velocidade máxima é 120 km/h (limite legal brasileiro).');
+                  } else {
+                    input.setCustomValidity('🚛 Digite uma velocidade válida entre 1 e 120 km/h.');
+                  }
+                }}
+                onInput={(e) => {
+                  const input = e.target as HTMLInputElement;
+                  input.setCustomValidity('');
+                }}
                 placeholder="60"
                 required
+                title="Velocidade média considerando tipo de via e tráfego."
               />
             </div>
 

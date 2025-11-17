@@ -201,6 +201,27 @@ export default function Viagens() {
     mutationFn: async (tripData: typeof formData) => {
       if (!user?.id) throw new Error("User not authenticated");
       
+      // Validações educativas
+      if (!tripData.vehicle_id || !tripData.route_id || !tripData.start_date || !tripData.end_date) {
+        throw new Error("Por favor, preencha todos os campos obrigatórios. Uma viagem precisa ter veículo, rota e datas definidas para ser planejada corretamente.");
+      }
+
+      // Validar peso vs capacidade do veículo
+      if (tripData.peso_ton && tripData.vehicle_id) {
+        const vehicle = vehicles.find(v => v.id === tripData.vehicle_id);
+        const peso = parseFloat(tripData.peso_ton);
+        if (vehicle && peso > vehicle.capacidade_ton) {
+          throw new Error(`⚠️ Sobrecarga detectada! O peso da carga (${peso.toFixed(2)} ton) excede a capacidade do veículo (${vehicle.capacidade_ton.toFixed(2)} ton). Isso é perigoso e pode causar multas ou acidentes. Escolha um veículo maior ou reduza a carga.`);
+        }
+      }
+
+      // Validar datas
+      const startDate = new Date(tripData.start_date);
+      const endDate = new Date(tripData.end_date);
+      if (endDate < startDate) {
+        throw new Error("📅 Data inválida! A data de término não pode ser anterior à data de início. Isso violaria a lógica temporal da viagem.");
+      }
+      
       const payload = {
         vehicle_id: tripData.vehicle_id,
         route_id: tripData.route_id,
@@ -233,21 +254,25 @@ export default function Viagens() {
         });
       } catch (error) {
         console.error('Erro ao calcular custos automaticamente:', error);
-        // Não mostrar erro ao usuário, pois a viagem foi criada com sucesso
+        toast({
+          title: "⚠️ Atenção",
+          description: "A viagem foi criada, mas não conseguimos calcular os custos automaticamente. Você pode recalcular manualmente na página de detalhes.",
+          variant: "default",
+        });
       }
       
       queryClient.invalidateQueries({ queryKey: ["trips"] });
       resetForm();
       setIsDialogOpen(false);
       toast({
-        title: "Viagem criada",
-        description: "A viagem foi planejada com sucesso e os custos foram calculados.",
+        title: "✅ Viagem criada com sucesso!",
+        description: "Sua viagem foi planejada e os custos foram calculados. Você pode visualizar os detalhes clicando no ícone de olho.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar viagem",
-        description: error.message || "Não foi possível planejar a viagem.",
+        title: "❌ Erro ao criar viagem",
+        description: error.message || "Não foi possível planejar a viagem. Verifique se todos os campos estão preenchidos corretamente.",
         variant: "destructive",
       });
       console.error("Error creating trip:", error);
@@ -301,8 +326,8 @@ export default function Viagens() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar viagem",
-        description: error.message || "Não foi possível atualizar a viagem.",
+        title: "❌ Erro ao atualizar viagem",
+        description: error.message || "Não foi possível atualizar a viagem. Verifique se todos os dados estão corretos e tente novamente.",
         variant: "destructive",
       });
       console.error("Error updating trip:", error);
@@ -328,8 +353,8 @@ export default function Viagens() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir viagem",
-        description: "Não foi possível remover a viagem.",
+        title: "❌ Erro ao excluir viagem",
+        description: "Não foi possível remover a viagem. Ela pode estar sendo usada em simulações ou relatórios. Tente novamente mais tarde.",
         variant: "destructive",
       });
       console.error("Error deleting trip:", error);
@@ -709,7 +734,16 @@ export default function Viagens() {
                     min="0"
                     value={formData.peso_ton}
                     onChange={(e) => setFormData(prev => ({ ...prev, peso_ton: e.target.value }))}
+                    onInvalid={(e) => {
+                      const input = e.target as HTMLInputElement;
+                      input.setCustomValidity('⚖️ O peso deve ser maior que 0. Verifique se você está usando toneladas (1 ton = 1.000 kg).');
+                    }}
+                    onInput={(e) => {
+                      const input = e.target as HTMLInputElement;
+                      input.setCustomValidity('');
+                    }}
                     placeholder="0.00"
+                    title="Peso da carga em toneladas. Ex: 25 toneladas = 25.000 kg"
                   />
                 </div>
 
@@ -726,7 +760,16 @@ export default function Viagens() {
                     min="0"
                     value={formData.volume_m3}
                     onChange={(e) => setFormData(prev => ({ ...prev, volume_m3: e.target.value }))}
+                    onInvalid={(e) => {
+                      const input = e.target as HTMLInputElement;
+                      input.setCustomValidity('📦 O volume deve ser maior que 0. Use metros cúbicos (m³) como unidade.');
+                    }}
+                    onInput={(e) => {
+                      const input = e.target as HTMLInputElement;
+                      input.setCustomValidity('');
+                    }}
                     placeholder="0.00"
+                    title="Volume da carga em metros cúbicos. Ex: 50 m³"
                   />
                 </div>
 
