@@ -93,7 +93,22 @@ const VehicleForm = ({
           placeholder="40.00"
           value={formData.capacidade_ton}
           onChange={(e) => setFormData({ ...formData, capacidade_ton: e.target.value })}
+          onInvalid={(e) => {
+            const input = e.target as HTMLInputElement;
+            if (input.validity.rangeUnderflow) {
+              input.setCustomValidity('⚠️ A capacidade mínima é 0.1 toneladas (100 kg). Veículos menores não são considerados veículos de carga.');
+            } else if (input.validity.rangeOverflow) {
+              input.setCustomValidity('⚠️ A capacidade máxima é 100 toneladas. Se seu veículo é maior, contate o suporte.');
+            } else {
+              input.setCustomValidity('⚖️ Digite uma capacidade válida entre 0.1 e 100 toneladas.');
+            }
+          }}
+          onInput={(e) => {
+            const input = e.target as HTMLInputElement;
+            input.setCustomValidity('');
+          }}
           required
+          title="Capacidade do veículo em toneladas (entre 0.1 e 100 ton)"
         />
       </div>
       <div className="space-y-2">
@@ -110,7 +125,22 @@ const VehicleForm = ({
           placeholder="3.20"
           value={formData.km_por_litro}
           onChange={(e) => setFormData({ ...formData, km_por_litro: e.target.value })}
+          onInvalid={(e) => {
+            const input = e.target as HTMLInputElement;
+            if (input.validity.rangeUnderflow) {
+              input.setCustomValidity('⛽ O consumo mínimo é 0.1 km/l. Se for menor, o veículo é muito ineficiente.');
+            } else if (input.validity.rangeOverflow) {
+              input.setCustomValidity('⛽ O consumo máximo é 20 km/l. Veículos de carga pesada geralmente consomem entre 2 a 5 km/l.');
+            } else {
+              input.setCustomValidity('⛽ Digite um consumo válido entre 0.1 e 20 km/l.');
+            }
+          }}
+          onInput={(e) => {
+            const input = e.target as HTMLInputElement;
+            input.setCustomValidity('');
+          }}
           required
+          title="Consumo do veículo em km/litro (típico: 2 a 5 km/l para caminhões)"
         />
       </div>
     </div>
