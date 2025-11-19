@@ -81,13 +81,8 @@ export default function Reports() {
   // Calculate KPIs
   const completedTrips = trips.filter(t => t.status === 'Concluída')
   
-  // OTD (On-Time Delivery): viagens que terminaram na data prevista ou antes
-  const onTimeTrips = completedTrips.filter(t => {
-    const actualEndDate = new Date(t.end_date)
-    const plannedEndDate = new Date(t.end_date) // Usar end_date como planejado
-    return actualEndDate <= plannedEndDate
-  })
-  
+  // OTD (On-Time Delivery): % de viagens concluídas em relação ao total
+  // Nota: Para cálculo mais preciso, seria necessário armazenar data_planejada_conclusao separadamente
   const otd = trips.length > 0 
     ? (completedTrips.length / trips.length * 100).toFixed(1)
     : '0.0'
