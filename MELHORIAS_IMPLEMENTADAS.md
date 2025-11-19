@@ -91,6 +91,19 @@ Onde:
 - Extra = custo_extra (se houver)
 ```
 
+### Cálculo de Preço de Frete (NOVO)
+```
+Preço Sugerido = Custo Total ÷ (1 - Margem Desejada / 100)
+Lucro Estimado = Preço Sugerido - Custo Total
+Margem Real (%) = (Lucro / Preço Sugerido) × 100
+
+Exemplo:
+- Custo Total: R$ 2.500,00
+- Margem Desejada: 15%
+- Preço Sugerido: R$ 2.500 ÷ (1 - 0,15) = R$ 2.941,18
+- Lucro: R$ 441,18
+```
+
 ### Métricas Derivadas
 ```
 - Tempo Estimado (h) = distância_km / velocidade_média_kmh
@@ -104,12 +117,32 @@ Onde:
 
 ## 🎯 MELHORIAS PARA CONTEXTO EDUCACIONAL
 
+### Calculadora de Preço de Frete (NOVO) 💰
+Implementada ferramenta educativa para ensinar precificação:
+- **Calculadora interativa** que mostra em tempo real:
+  - Custo Total da viagem (base para precificação)
+  - Campo para definir Margem de Lucro desejada (%)
+  - Cálculo automático do Preço Sugerido
+  - Visualização do Lucro Estimado
+- **Educacional:**
+  - Fórmula visível: `Preço = Custo ÷ (1 - Margem/100)`
+  - Exemplo prático com os valores inseridos
+  - Dicas sobre margens típicas (10-20% para fretes)
+  - Explicação sobre a diferença entre markup e margem
+
+### Campo de Receita Adicionado ✅
+- Adicionado campo `receita` no formulário de viagens
+- Permite registrar o valor acordado com o cliente
+- Cálculo automático de margem de lucro real quando informado
+- Comparação entre receita e custo total nos relatórios
+
 ### Consistência Didática
 - ✅ Mesma fórmula usada em frontend e backend
 - ✅ Nomenclatura consistente em todo o sistema
 - ✅ Comentários explicativos em português nos cálculos
 - ✅ Tooltips explicativos em todos os campos técnicos
 - ✅ Fórmulas visíveis nas telas de resultados
+- ✅ Calculadora de preço educativa
 
 ### Precisão dos Cálculos
 - ✅ Custos variáveis agora são calculados corretamente
