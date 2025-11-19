@@ -18,7 +18,6 @@ import SimulationCreate from "./pages/SimulationCreate";
 import SimulationCompare from "./pages/SimulationCompare";
 import Settings from "@/pages/Settings";
 import Custos from "@/pages/Custos";
-import Parameters from "@/pages/Parameters";
 import ParametrosGlobais from "@/pages/ParametrosGlobais";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -44,7 +43,6 @@ const App = () => (
             <Route path="/simulations/create" element={<ProtectedRoute><AppLayout><SimulationCreate /></AppLayout></ProtectedRoute>} />
             <Route path="/simulations/compare/:id" element={<ProtectedRoute><AppLayout><SimulationCompare /></AppLayout></ProtectedRoute>} />
             <Route path="/custos" element={<ProtectedRoute><AppLayout><Custos /></AppLayout></ProtectedRoute>} />
-            <Route path="/parameters" element={<ProtectedRoute><AppLayout><Parameters /></AppLayout></ProtectedRoute>} />
             <Route path="/parametros-globais" element={<ProtectedRoute><AppLayout><ParametrosGlobais /></AppLayout></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><AppLayout><Reports /></AppLayout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
