@@ -83,12 +83,9 @@ const Index = () => {
             alt="NEXUS Logo" 
             className="w-48 h-48 md:w-56 md:h-56 mb-6 object-contain"
           />
-          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-4 tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-8 tracking-tight">
             NEXUS
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-6 font-light">
-            Logistics Simulation & Cost Optimization
-          </p>
           <div className="inline-block border-2 border-primary/30 rounded-full px-6 py-2 backdrop-blur-sm">
             <p className="text-primary font-medium">
               Logística sem fronteiras, aprendizagem exponencial!
