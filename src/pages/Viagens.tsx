@@ -64,6 +64,7 @@ interface Trip {
   status: 'Planejada' | 'Em_Andamento' | 'Concluída';
   peso_ton?: number;
   volume_m3?: number;
+  receita?: number;
   observacoes?: string;
   created_at: string;
   updated_at: string;
@@ -108,6 +109,7 @@ export default function Viagens() {
     status: 'Planejada' | 'Em_Andamento' | 'Concluída';
     peso_ton: string;
     volume_m3: string;
+    receita: string;
     custo_extra: string;
     custo_extra_descricao: string;
     observacoes: string;
@@ -120,6 +122,7 @@ export default function Viagens() {
     status: "Planejada",
     peso_ton: "",
     volume_m3: "",
+    receita: "",
     custo_extra: "",
     custo_extra_descricao: "",
     observacoes: "",
@@ -231,6 +234,7 @@ export default function Viagens() {
         status: tripData.status,
         peso_ton: tripData.peso_ton ? parseFloat(tripData.peso_ton) : null,
         volume_m3: tripData.volume_m3 ? parseFloat(tripData.volume_m3) : null,
+        receita: tripData.receita ? parseFloat(tripData.receita) : null,
         custo_extra: tripData.custo_extra ? parseFloat(tripData.custo_extra) : 0,
         custo_extra_descricao: tripData.custo_extra_descricao || null,
         observacoes: tripData.observacoes || null,
@@ -371,6 +375,7 @@ export default function Viagens() {
       status: "Planejada",
       peso_ton: "",
       volume_m3: "",
+      receita: "",
       custo_extra: "",
       custo_extra_descricao: "",
       observacoes: "",
@@ -403,6 +408,7 @@ export default function Viagens() {
       status: trip.status,
       peso_ton: trip.peso_ton?.toString() || "",
       volume_m3: trip.volume_m3?.toString() || "",
+      receita: trip.receita?.toString() || "",
       custo_extra: (trip as any).custo_extra?.toString() || "",
       custo_extra_descricao: (trip as any).custo_extra_descricao || "",
       observacoes: trip.observacoes || "",
@@ -773,6 +779,24 @@ export default function Viagens() {
                   />
                 </div>
 
+                {/* Receita */}
+                <div className="space-y-2">
+                  <Label htmlFor="receita" className="flex items-center space-x-1">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    <span>Receita (R$)</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    id="receita"
+                    step="0.01"
+                    min="0"
+                    value={formData.receita}
+                    onChange={(e) => setFormData(prev => ({ ...prev, receita: e.target.value }))}
+                    placeholder="0.00"
+                    title="Valor que você receberá pelo frete. Use a calculadora de preço para sugerir um valor adequado."
+                  />
+                </div>
+
                 {/* Custo Extra */}
                 <div className="space-y-2">
                   <Label htmlFor="custo_extra" className="flex items-center space-x-1">
@@ -789,26 +813,26 @@ export default function Viagens() {
                     placeholder="0.00"
                   />
                 </div>
+              </div>
 
-                {/* Status */}
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select 
-                    value={formData.status} 
-                    onValueChange={(value: 'Planejada' | 'Em_Andamento' | 'Concluída') => 
-                      setFormData(prev => ({ ...prev, status: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Planejada">Planejada</SelectItem>
-                      <SelectItem value="Em_Andamento">Em Andamento</SelectItem>
-                      <SelectItem value="Concluída">Concluída</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Status */}
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value: 'Planejada' | 'Em_Andamento' | 'Concluída') => 
+                    setFormData(prev => ({ ...prev, status: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Planejada">Planejada</SelectItem>
+                    <SelectItem value="Em_Andamento">Em Andamento</SelectItem>
+                    <SelectItem value="Concluída">Concluída</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Extra Cost Description */}

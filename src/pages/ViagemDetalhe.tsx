@@ -26,6 +26,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FormulaCard } from "@/components/FormulaCard";
+import { FreightPriceCalculator } from "@/components/FreightPriceCalculator";
 
 interface Trip {
   id: string;
@@ -37,6 +38,7 @@ interface Trip {
   status: 'Planejada' | 'Em_Andamento' | 'Concluída';
   peso_ton?: number;
   volume_m3?: number;
+  receita?: number;
   observacoes?: string;
   consumo_combustivel_l?: number;
   custo_combustivel?: number;
@@ -658,6 +660,17 @@ export default function ViagemDetalhe() {
                 : "Dados não disponíveis"
             }
           ]}
+        />
+      )}
+
+      {/* Calculadora de Preço de Frete */}
+      {trip.custo_total_estimado && trip.custo_total_estimado > 0 && (
+        <FreightPriceCalculator 
+          custoTotal={trip.custo_total_estimado}
+          onPriceCalculated={(price, margin) => {
+            // Opcional: salvar o preço sugerido
+            console.log('Preço sugerido:', price, 'Margem:', margin);
+          }}
         />
       )}
 
