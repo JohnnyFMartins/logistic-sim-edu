@@ -141,7 +141,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="flex-1">
               <h1 className="text-lg font-semibold text-foreground">
-                TMS Didático — SENAI
+                NEXUS
               </h1>
             </div>
             
