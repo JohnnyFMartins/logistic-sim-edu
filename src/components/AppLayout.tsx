@@ -14,6 +14,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import nexusLogo from "@/assets/nexus-logo.png"
 
 interface AppLayoutProps {
   children: ReactNode
@@ -135,7 +136,15 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col relative">
+          {/* Watermark */}
+          <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
+            <img 
+              src={nexusLogo} 
+              alt="" 
+              className="w-[500px] h-[500px] object-contain opacity-[0.05]"
+            />
+          </div>
           {/* Header */}
           <header className="h-14 flex items-center border-b bg-card px-4 gap-4">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
@@ -169,7 +178,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Icon Menu - Horizontal - Only show on non-home pages */}
           {location.pathname !== '/' && (
-            <div className="border-b bg-card/50 py-4">
+            <div className="border-b bg-card/50 py-4 relative z-10">
               <div className="px-6">
                 <div className="flex gap-6 justify-center flex-wrap">
                   {menuItems.map((item) => (
@@ -208,7 +217,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Breadcrumbs - Only show on non-home pages */}
           {location.pathname !== '/' && (
-            <div className="bg-background border-b min-h-[52px] flex items-center">
+            <div className="bg-background border-b min-h-[52px] flex items-center relative z-10">
               <div className="px-6 py-3 w-full">
                 <Breadcrumb>
                   <BreadcrumbList>
@@ -236,7 +245,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           )}
 
           {/* Main Content */}
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 relative z-10">
             {children}
           </main>
         </div>
