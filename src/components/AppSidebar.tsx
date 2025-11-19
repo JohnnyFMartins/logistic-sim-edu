@@ -57,8 +57,8 @@ export function AppSidebar() {
               <Truck className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-bold text-lg text-sidebar-foreground">TMS Didático — SENAI</h2>
-              <p className="text-xs text-sidebar-foreground/60">Sistema Educacional</p>
+              <h2 className="font-bold text-lg text-sidebar-foreground">NEXUS</h2>
+              <p className="text-xs text-sidebar-foreground/60">Logistics Simulation</p>
             </div>
           </div>
         </div>

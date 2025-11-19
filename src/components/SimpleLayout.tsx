@@ -134,8 +134,8 @@ export function SimpleLayout({ children }: SimpleLayoutProps) {
               <Truck className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">TMS Didático — SENAI</h1>
-              <p className="text-xs text-muted-foreground">Sistema Educacional</p>
+              <h1 className="text-xl font-bold text-foreground">NEXUS</h1>
+              <p className="text-xs text-muted-foreground">Logistics Simulation</p>
             </div>
           </div>
           
