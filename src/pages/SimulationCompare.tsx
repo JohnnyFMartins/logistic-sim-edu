@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Calculator } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router-dom";
-import { FormulaCard } from "@/components/FormulaCard";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 
 interface Simulation {
   id: string;
@@ -334,46 +335,6 @@ export default function SimulationCompare() {
         </Card>
       </div>
 
-      {/* Fórmulas de Cálculo */}
-      <FormulaCard
-        title="📐 Como os Custos são Calculados?"
-        description="Entenda as fórmulas utilizadas pelo sistema para calcular os custos de transporte"
-        formulas={[
-          {
-            label: "1. Consumo de Combustível",
-            formula: "Consumo (L) = Distância (km) ÷ Consumo do Veículo (km/L)",
-            example: `Ex: ${baseTrip.routes.distancia_km} km ÷ ${(baseTrip.routes.distancia_km / (baseTrip.consumo_combustivel_l || 1)).toFixed(2)} km/L = ${formatLiters(baseTrip.consumo_combustivel_l || 0)}`
-          },
-          {
-            label: "2. Custo de Combustível",
-            formula: "Custo Combustível (R$) = Consumo (L) × Preço do Diesel (R$/L)",
-            example: `Ex: ${formatLiters(baseTrip.consumo_combustivel_l || 0)} × R$ ${((baseTrip.custo_combustivel || 0) / (baseTrip.consumo_combustivel_l || 1)).toFixed(2)}/L = ${formatCurrency(baseTrip.custo_combustivel || 0)}`
-          },
-          {
-            label: "3. Custos Variáveis",
-            formula: "Custos Variáveis (R$) = Soma dos Custos por Km × Distância",
-            example: "Ex: Manutenção, pneus, lubrificantes proporcionais à distância percorrida"
-          },
-          {
-            label: "4. Custo Fixo Rateado",
-            formula: "Custo Fixo (R$) = (Custos Mensais ÷ 30 dias) × Tempo da Viagem (dias)",
-            example: "Ex: Seguro, IPVA, licenciamento divididos pelo tempo de uso"
-          },
-          {
-            label: "5. Custo Total",
-            formula: "Custo Total = Combustível + Variáveis + Pedágios + Fixo Rateado",
-            example: `Total: ${formatCurrency(baseTrip.custo_total_estimado || 0)}`
-          },
-          {
-            label: "6. Margem de Lucro (%)",
-            formula: "Margem = ((Receita - Custo Total) ÷ Receita) × 100",
-            example: baseTrip.receita > 0 
-              ? `Ex: ((${formatCurrency(baseTrip.receita)} - ${formatCurrency(baseTrip.custo_total_estimado || 0)}) ÷ ${formatCurrency(baseTrip.receita)}) × 100 = ${(((baseTrip.receita - (baseTrip.custo_total_estimado || 0)) / baseTrip.receita) * 100).toFixed(1)}%`
-              : "Ex: Receita não informada"
-          }
-        ]}
-      />
-
       {/* Summary Card */}
       <Card>
         <CardHeader>
@@ -406,6 +367,98 @@ export default function SimulationCompare() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Fórmulas de Cálculo - Accordion Retrátil */}
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="formulas" className="border rounded-lg px-4">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-primary" />
+              <span className="text-lg font-semibold">📐 Como os Custos são Calculados?</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="pt-4">
+              <p className="text-sm text-muted-foreground mb-6">
+                Entenda as fórmulas utilizadas pelo sistema para calcular os custos de transporte
+              </p>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">1. Consumo de Combustível</h4>
+                  <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                    Consumo (L) = Distância (km) ÷ Consumo do Veículo (km/L)
+                  </p>
+                  <p className="text-sm">
+                    Ex: {baseTrip.routes.distancia_km} km ÷ {(baseTrip.routes.distancia_km / (baseTrip.consumo_combustivel_l || 1)).toFixed(2)} km/L = {formatLiters(baseTrip.consumo_combustivel_l || 0)}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">2. Custo de Combustível</h4>
+                  <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                    Custo Combustível (R$) = Consumo (L) × Preço do Diesel (R$/L)
+                  </p>
+                  <p className="text-sm">
+                    Ex: {formatLiters(baseTrip.consumo_combustivel_l || 0)} × R$ {((baseTrip.custo_combustivel || 0) / (baseTrip.consumo_combustivel_l || 1)).toFixed(2)}/L = {formatCurrency(baseTrip.custo_combustivel || 0)}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">3. Custos Variáveis</h4>
+                  <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                    Custos Variáveis (R$) = Soma dos Custos por Km × Distância
+                  </p>
+                  <p className="text-sm">
+                    Ex: Manutenção, pneus, lubrificantes proporcionais à distância percorrida
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">4. Custo Fixo Rateado</h4>
+                  <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                    Custo Fixo (R$) = (Custos Mensais ÷ 30 dias) × Tempo da Viagem (dias)
+                  </p>
+                  <p className="text-sm">
+                    Ex: Seguro, IPVA, licenciamento divididos pelo tempo de uso
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">5. Custo Total</h4>
+                  <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                    Custo Total = Combustível + Variáveis + Pedágios + Fixo Rateado
+                  </p>
+                  <p className="text-sm">
+                    Total: {formatCurrency(baseTrip.custo_total_estimado || 0)}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">6. Margem de Lucro (%)</h4>
+                  <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                    Margem = ((Receita - Custo Total) ÷ Receita) × 100
+                  </p>
+                  <p className="text-sm">
+                    {baseTrip.receita > 0 
+                      ? `Ex: ((${formatCurrency(baseTrip.receita)} - ${formatCurrency(baseTrip.custo_total_estimado || 0)}) ÷ ${formatCurrency(baseTrip.receita)}) × 100 = ${(((baseTrip.receita - (baseTrip.custo_total_estimado || 0)) / baseTrip.receita) * 100).toFixed(1)}%`
+                      : "Ex: Receita não informada"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }

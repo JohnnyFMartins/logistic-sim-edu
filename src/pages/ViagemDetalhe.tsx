@@ -23,6 +23,7 @@ import {
   Fuel,
   RefreshCw
 } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FormulaCard } from "@/components/FormulaCard";
@@ -611,58 +612,6 @@ export default function ViagemDetalhe() {
         </Card>
       )}
 
-      {/* Fórmulas de Cálculo */}
-      {route && (
-        <FormulaCard
-          title="📐 Como os Custos foram Calculados?"
-          description="Veja as fórmulas e exemplos usados para calcular os custos desta viagem"
-          formulas={[
-            {
-              label: "1. Consumo de Combustível",
-              formula: "Consumo (L) = Distância (km) ÷ Consumo do Veículo (km/L)",
-              example: trip.consumo_combustivel_l && route.distancia_km 
-                ? `${route.distancia_km} km ÷ ${(route.distancia_km / trip.consumo_combustivel_l).toFixed(2)} km/L = ${trip.consumo_combustivel_l.toFixed(2)} L`
-                : "Dados não disponíveis"
-            },
-            {
-              label: "2. Custo de Combustível",
-              formula: "Custo (R$) = Consumo (L) × Preço do Diesel (R$/L)",
-              example: trip.custo_combustivel && trip.consumo_combustivel_l
-                ? `${trip.consumo_combustivel_l.toFixed(2)} L × R$ ${(trip.custo_combustivel / trip.consumo_combustivel_l).toFixed(2)}/L = R$ ${trip.custo_combustivel.toFixed(2)}`
-                : "Dados não disponíveis"
-            },
-            {
-              label: "3. Custos Variáveis",
-              formula: "Custos (R$) = Soma dos Custos por Km × Distância",
-              example: trip.custo_variaveis 
-                ? `Manutenção, pneus e outros = R$ ${trip.custo_variaveis.toFixed(2)}`
-                : "Dados não disponíveis"
-            },
-            {
-              label: "4. Custo Fixo Rateado",
-              formula: "Custo (R$) = (Custos Mensais ÷ 30) × Tempo de Viagem (dias)",
-              example: trip.custo_fixo_rateado
-                ? `Seguro, IPVA e licenciamento = R$ ${trip.custo_fixo_rateado.toFixed(2)}`
-                : "Dados não disponíveis"
-            },
-            {
-              label: "5. Custo Total",
-              formula: "Total = Combustível + Variáveis + Pedágios + Fixo",
-              example: trip.custo_total_estimado
-                ? `R$ ${trip.custo_total_estimado.toFixed(2)}`
-                : "Dados não disponíveis"
-            },
-            {
-              label: "6. Tempo Estimado",
-              formula: "Tempo (h) = Distância (km) ÷ Velocidade Média (km/h)",
-              example: trip.tempo_estimado_h && route.distancia_km
-                ? `${route.distancia_km} km ÷ ${(route.distancia_km / trip.tempo_estimado_h).toFixed(0)} km/h = ${trip.tempo_estimado_h.toFixed(1)} horas`
-                : "Dados não disponíveis"
-            }
-          ]}
-        />
-      )}
-
       {/* Calculadora de Preço de Frete */}
       {trip.custo_total_estimado && trip.custo_total_estimado > 0 && (
         <FreightPriceCalculator 
@@ -672,6 +621,110 @@ export default function ViagemDetalhe() {
             console.log('Preço sugerido:', price, 'Margem:', margin);
           }}
         />
+      )}
+
+      {/* Fórmulas de Cálculo - Accordion Retrátil */}
+      {route && (
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="formulas" className="border rounded-lg px-4">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-primary" />
+                <span className="text-lg font-semibold">📐 Como os Custos foram Calculados?</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="pt-4">
+                <p className="text-sm text-muted-foreground mb-6">
+                  Veja as fórmulas e exemplos usados para calcular os custos desta viagem
+                </p>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">1. Consumo de Combustível</h4>
+                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                      Consumo (L) = Distância (km) ÷ Consumo do Veículo (km/L)
+                    </p>
+                    <p className="text-sm">
+                      {trip.consumo_combustivel_l && route.distancia_km 
+                        ? `${route.distancia_km} km ÷ ${(route.distancia_km / trip.consumo_combustivel_l).toFixed(2)} km/L = ${trip.consumo_combustivel_l.toFixed(2)} L`
+                        : "Dados não disponíveis"}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">2. Custo de Combustível</h4>
+                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                      Custo (R$) = Consumo (L) × Preço do Diesel (R$/L)
+                    </p>
+                    <p className="text-sm">
+                      {trip.custo_combustivel && trip.consumo_combustivel_l
+                        ? `${trip.consumo_combustivel_l.toFixed(2)} L × R$ ${(trip.custo_combustivel / trip.consumo_combustivel_l).toFixed(2)}/L = R$ ${trip.custo_combustivel.toFixed(2)}`
+                        : "Dados não disponíveis"}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">3. Custos Variáveis</h4>
+                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                      Custos (R$) = Soma dos Custos por Km × Distância
+                    </p>
+                    <p className="text-sm">
+                      {trip.custo_variaveis 
+                        ? `Manutenção, pneus e outros = R$ ${trip.custo_variaveis.toFixed(2)}`
+                        : "Dados não disponíveis"}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">4. Custo Fixo Rateado</h4>
+                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                      Custo (R$) = (Custos Mensais ÷ 30) × Tempo de Viagem (dias)
+                    </p>
+                    <p className="text-sm">
+                      {trip.custo_fixo_rateado
+                        ? `Seguro, IPVA e licenciamento = R$ ${trip.custo_fixo_rateado.toFixed(2)}`
+                        : "Dados não disponíveis"}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">5. Custo Total</h4>
+                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                      Total = Combustível + Variáveis + Pedágios + Fixo
+                    </p>
+                    <p className="text-sm">
+                      {trip.custo_total_estimado
+                        ? `R$ ${trip.custo_total_estimado.toFixed(2)}`
+                        : "Dados não disponíveis"}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">6. Tempo Estimado</h4>
+                    <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+                      Tempo (h) = Distância (km) ÷ Velocidade Média (km/h)
+                    </p>
+                    <p className="text-sm">
+                      {trip.tempo_estimado_h && route.distancia_km
+                        ? `${route.distancia_km} km ÷ ${(route.distancia_km / trip.tempo_estimado_h).toFixed(0)} km/h = ${trip.tempo_estimado_h.toFixed(1)} horas`
+                        : "Dados não disponíveis"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       )}
 
       {/* Actions */}
