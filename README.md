@@ -263,6 +263,193 @@ O sistema gerará:
 - **Autenticação**: Supabase Auth
 - **Roteamento**: React Router v6
 
+---
+
+## 🏗️ Arquitetura do Sistema
+
+### ✅ Separação Frontend/Backend (Arquitetura Moderna)
+
+**Este projeto segue uma arquitetura desacoplada**, onde frontend e backend rodam em servidores completamente separados:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    REPOSITÓRIO GIT                          │
+│  (Código fonte unificado para versionamento)                │
+│                                                             │
+│  ├── src/                  ← Frontend (React/TypeScript)    │
+│  ├── supabase/             ← Backend (Edge Functions/SQL)   │
+│  └── ...                                                    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              │ Deploy Automático
+                              ▼
+        ┌─────────────────────────────────────────┐
+        │     EXECUÇÃO EM SERVIDORES SEPARADOS    │
+        └─────────────────────────────────────────┘
+                 │                       │
+                 │                       │
+                 ▼                       ▼
+   ┌──────────────────────┐    ┌──────────────────────┐
+   │   FRONTEND           │    │   BACKEND            │
+   │   (Interface Web)    │    │   (API + Database)   │
+   │                      │    │                      │
+   │ • React App          │◄───┤ • Edge Functions     │
+   │ • HTML/CSS/JS        │    │ • PostgreSQL         │
+   │ • Hospedado em:      │    │ • Autenticação       │
+   │   - Lovable          │    │ • Armazenamento      │
+   │   - Vercel           │    │                      │
+   │   - Netlify          │    │ Hospedado em:        │
+   │   - Servidor próprio │    │ • Supabase Cloud     │
+   │                      │    │   (Infraestrutura    │
+   │ Porta: 80/443        │    │    gerenciada)       │
+   └──────────────────────┘    └──────────────────────┘
+            │                            ▲
+            │                            │
+            └────── API REST (HTTPS) ────┘
+                 (Comunicação via Internet)
+```
+
+### 📂 O que significa a pasta `supabase/` local?
+
+A pasta `supabase/` no repositório é o **código fonte** do backend, não o backend em execução:
+
+| Item | Descrição | Onde executa |
+|------|-----------|--------------|
+| `supabase/functions/` | Código das Edge Functions | ☁️ Servidores Supabase |
+| `supabase/migrations/` | Scripts SQL do banco de dados | ☁️ Supabase Database |
+| `supabase/config.toml` | Configurações do projeto | 📝 Apenas configuração |
+| `src/` | Código React/TypeScript | 🌐 Servidor web (frontend) |
+
+**Analogia**: É como ter os planos de construção de uma casa (pasta `supabase/`) e a casa real construída (servidores Supabase). Você pode guardar os planos junto com a decoração da casa (pasta `src/`), mas a casa está em outro lugar!
+
+### 🚀 Como Fazer Deploy Separado
+
+#### Frontend (Servidor Próprio)
+
+```bash
+# 1. Build do frontend
+npm run build
+
+# 2. A pasta 'dist/' conterá APENAS o frontend
+# - HTML, CSS, JavaScript compilado
+# - SEM código backend
+# - SEM conexão direta com banco de dados
+
+# 3. Hospedar em qualquer servidor web
+# Apache, Nginx, Vercel, Netlify, etc.
+```
+
+**Exemplo de configuração Nginx:**
+
+```nginx
+server {
+    listen 80;
+    server_name meudominio.com;
+    
+    root /var/www/nexus/dist;
+    index index.html;
+    
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+#### Backend (Já está no Supabase)
+
+✅ **Nenhuma ação necessária!** O backend já está rodando em:
+- URL: `https://dhrsfmwhlrbvpsorqeoz.supabase.co`
+- Edge Functions: `https://dhrsfmwhlrbvpsorqeoz.supabase.co/functions/v1/`
+- Database: PostgreSQL gerenciado
+
+### 🔗 Como Frontend e Backend se Comunicam
+
+```typescript
+// src/integrations/supabase/client.ts
+// Frontend faz requisições HTTP para o backend remoto
+
+const SUPABASE_URL = "https://dhrsfmwhlrbvpsorqeoz.supabase.co";
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Quando você chama:
+await supabase.from('trips').select()
+// → Faz requisição HTTPS para o servidor Supabase
+// → NÃO acessa nada localmente
+```
+
+### 🎯 Vantagens desta Arquitetura
+
+| Vantagem | Descrição |
+|----------|-----------|
+| ✅ **Escalabilidade** | Frontend e backend escalam independentemente |
+| ✅ **Segurança** | Banco de dados nunca exposto diretamente |
+| ✅ **Manutenção** | Atualizar frontend sem tocar no backend (e vice-versa) |
+| ✅ **Performance** | CDN para frontend, servidores otimizados para backend |
+| ✅ **Custo** | Pague apenas pelos recursos que usar em cada camada |
+| ✅ **Flexibilidade** | Mude de servidor frontend sem migrar dados |
+
+### 🔒 Segurança da Separação
+
+**Frontend:**
+- Contém apenas código público (HTML/CSS/JS)
+- Nenhuma credencial ou segredo
+- Pode ser cacheado em CDN
+
+**Backend (Supabase):**
+- Credenciais de banco de dados protegidas
+- Edge Functions com variáveis de ambiente seguras
+- Row Level Security (RLS) no PostgreSQL
+- Autenticação JWT
+
+### 📊 Fluxo Completo de uma Requisição
+
+```
+1. Usuário abre navegador
+   ↓
+2. Baixa frontend do servidor web (Apache/Nginx/Lovable)
+   ↓
+3. Frontend carrega no navegador
+   ↓
+4. Usuário faz login
+   ↓
+5. Frontend envia credenciais via HTTPS para Supabase
+   ↓
+6. Supabase valida e retorna token JWT
+   ↓
+7. Frontend usa token JWT em todas as requisições
+   ↓
+8. Supabase verifica token e retorna dados
+   ↓
+9. Frontend exibe dados na interface
+```
+
+**Todos os passos 5-8 acontecem pela internet, nunca localmente!**
+
+### 🎓 Para Apresentação Acadêmica
+
+Você pode explicar ao professor que:
+
+1. **Repositório único ≠ Servidor único**
+   - O código está em um repositório Git para versionamento
+   - Mas executa em infraestruturas completamente separadas
+
+2. **Padrão da Indústria**
+   - Arquitetura moderna (SaaS, microserviços)
+   - Usado por Netflix, Uber, Airbnb, etc.
+
+3. **Não é monolito**
+   - Frontend pode trocar de servidor sem afetar backend
+   - Backend (Supabase) é completamente independente
+   - Comunicação via API REST sobre HTTPS
+
+4. **Comparação com Arquiteturas Tradicionais**
+
+   | Arquitetura | Frontend | Backend | Database | Acoplamento |
+   |-------------|----------|---------|----------|-------------|
+   | **Monolito** | Servidor PHP | Servidor PHP | MySQL local | 🔴 Alto |
+   | **Este Projeto** | Servidor web | Supabase Cloud | PostgreSQL remoto | 🟢 Baixo |
+
 ### Estrutura do Projeto
 
 ```
