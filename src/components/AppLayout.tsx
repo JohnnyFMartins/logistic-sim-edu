@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
-import { LogOut, Truck, Route, MapPin, Play, DollarSign, BarChart3, Package, Home } from "lucide-react"
+import { LogOut, Truck, Route, MapPin, Package, Home } from "lucide-react"
 import { ReactNode, useMemo } from "react"
 import { useNavigate, useLocation, Link } from "react-router-dom"
 import {
@@ -46,33 +46,9 @@ const menuItems = [
     shadowClass: "group-hover:shadow-amber-500/50"
   },
   { 
-    title: "Viagens", 
-    url: "/viagens", 
+    title: "Pedidos", 
+    url: "/pedidos", 
     icon: MapPin,
-    bgClass: "bg-warning/20 hover:bg-warning/30",
-    iconClass: "text-warning",
-    shadowClass: "group-hover:shadow-warning/50"
-  },
-  { 
-    title: "Simulações", 
-    url: "/simulations", 
-    icon: Play,
-    bgClass: "bg-primary/20 hover:bg-primary/30",
-    iconClass: "text-primary",
-    shadowClass: "group-hover:shadow-primary/50"
-  },
-  { 
-    title: "Parâmetros", 
-    url: "/custos", 
-    icon: DollarSign,
-    bgClass: "bg-success/20 hover:bg-success/30",
-    iconClass: "text-success",
-    shadowClass: "group-hover:shadow-success/50"
-  },
-  { 
-    title: "Relatórios", 
-    url: "/reports", 
-    icon: BarChart3,
     bgClass: "bg-warning/20 hover:bg-warning/30",
     iconClass: "text-warning",
     shadowClass: "group-hover:shadow-warning/50"
@@ -85,8 +61,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
 
   const getUserInitials = () => {
-    if (user?.user_metadata?.full_name) {
-      return user.user_metadata.full_name
+    if (user?.nome) {
+      return user.nome
         .split(' ')
         .map((name: string) => name[0])
         .join('')
@@ -102,14 +78,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       '/vehicles': 'Veículos',
       '/routes': 'Rotas',
       '/cargo': 'Cargas',
-      '/viagens': 'Viagens',
-      '/simulations': 'Simulações',
-      '/simulations/create': 'Nova Simulação',
-      '/simulations/compare': 'Comparar Simulações',
-      '/custos': 'Parâmetros',
-      '/parameters': 'Parâmetros',
-      '/parametros-globais': 'Parâmetros Globais',
-      '/reports': 'Relatórios',
+      '/pedidos': 'Pedidos de Transporte',
       '/settings': 'Configurações',
     };
     return routes[pathname] || 'Página';
@@ -157,7 +126,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* User Menu */}
             <div className="flex items-center gap-3">
               <p className="text-sm font-medium leading-none">
-                {user?.user_metadata?.full_name || user?.email}
+                {user?.nome || user?.email}
               </p>
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary/10 text-primary">

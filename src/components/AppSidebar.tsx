@@ -1,11 +1,7 @@
 import { 
   Truck, 
   Route, 
-  Play,
-  BarChart3, 
   Home,
-  Users,
-  DollarSign,
   MapPin,
   Package
 } from "lucide-react"
@@ -27,13 +23,7 @@ const mainItems = [
   { title: "Veículos", url: "/vehicles", icon: Truck },
   { title: "Rotas", url: "/routes", icon: Route },
   { title: "Cargas", url: "/cargo", icon: Package },
-  { title: "Viagens", url: "/viagens", icon: MapPin },
-  { title: "Simulações", url: "/simulations", icon: Play },
-]
-
-const managementItems = [
-  { title: "Parâmetros", url: "/custos", icon: DollarSign },
-  { title: "Relatórios", url: "/reports", icon: BarChart3 },
+  { title: "Pedidos", url: "/pedidos", icon: MapPin },
 ]
 
 export function AppSidebar() {
@@ -68,28 +58,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className={getNavCls}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/70 font-semibold text-xs uppercase tracking-wide">Administração</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {managementItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 

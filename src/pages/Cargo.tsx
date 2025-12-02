@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { cargasApi, Carga, CargaInput } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,157 +33,81 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Package, Plus, Edit, Trash2 } from "lucide-react";
 
-interface Cargo {
-  id: string;
-  name: string;
-  weight: number;
-  value: number;
-  description?: string;
-  type: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export default function Cargo() {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCargo, setEditingCargo] = useState<Cargo | null>(null);
+  const [editingCargo, setEditingCargo] = useState<Carga | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    weight: "",
-    value: "",
-    description: "",
-    type: "general",
-    status: "active"
+    nome: "",
+    peso: "",
+    valor: "",
+    descricao: "",
+    tipo: "Geral",
+    status: "Ativo"
   });
 
-  // Buscar dados de carga
-  const { data: cargo = [], isLoading } = useQuery({
-    queryKey: ["cargo"],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("cargo")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      return data as Cargo[];
-    },
-    enabled: !!user?.id,
+  // Fetch cargas
+  const { data: cargas = [], isLoading } = useQuery({
+    queryKey: ["cargas"],
+    queryFn: cargasApi.getAll,
   });
 
-  // Create cargo mutation
-  const createCargo = useMutation({
-    mutationFn: async (newCargo: Omit<Cargo, "id" | "created_at" | "updated_at">) => {
-      if (!user?.id) throw new Error("User not authenticated");
-      
-      const { data, error } = await supabase
-        .from("cargo")
-        .insert([{ ...newCargo, user_id: user.id }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: cargasApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cargo"] });
-      toast({
-        title: "Carga criada",
-        description: "A carga foi cadastrada com sucesso.",
-      });
+      queryClient.invalidateQueries({ queryKey: ["cargas"] });
+      toast({ title: "Carga criada com sucesso!" });
       resetForm();
       setIsDialogOpen(false);
     },
-    onError: (error) => {
-      toast({
-        title: "Erro ao criar carga",
-        description: "Ocorreu um erro ao cadastrar a carga.",
-        variant: "destructive",
-      });
-      console.error(error);
+    onError: (error: any) => {
+      toast({ title: "Erro ao criar carga", description: error.message, variant: "destructive" });
     },
   });
 
-  // Update cargo mutation
-  const updateCargo = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Cargo> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("cargo")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: CargaInput }) => cargasApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cargo"] });
-      toast({
-        title: "Carga atualizada",
-        description: "A carga foi atualizada com sucesso.",
-      });
+      queryClient.invalidateQueries({ queryKey: ["cargas"] });
+      toast({ title: "Carga atualizada com sucesso!" });
       resetForm();
       setIsDialogOpen(false);
       setEditingCargo(null);
     },
-    onError: (error) => {
-      toast({
-        title: "Erro ao atualizar carga",
-        description: "Ocorreu um erro ao atualizar a carga.",
-        variant: "destructive",
-      });
-      console.error(error);
+    onError: (error: any) => {
+      toast({ title: "Erro ao atualizar carga", description: error.message, variant: "destructive" });
     },
   });
 
-  // Delete cargo mutation
-  const deleteCargo = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("cargo")
-        .delete()
-        .eq("id", id);
-      
-      if (error) throw error;
-    },
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: cargasApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cargo"] });
-      toast({
-        title: "Carga excluída",
-        description: "A carga foi excluída com sucesso.",
-      });
+      queryClient.invalidateQueries({ queryKey: ["cargas"] });
+      toast({ title: "Carga excluída com sucesso!" });
     },
-    onError: (error) => {
-      toast({
-        title: "Erro ao excluir carga",
-        description: "Ocorreu um erro ao excluir a carga.",
-        variant: "destructive",
-      });
-      console.error(error);
+    onError: (error: any) => {
+      toast({ title: "Erro ao excluir carga", description: error.message, variant: "destructive" });
     },
   });
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      weight: "",
-      value: "",
-      description: "",
-      type: "general",
-      status: "active"
+      nome: "",
+      peso: "",
+      valor: "",
+      descricao: "",
+      tipo: "Geral",
+      status: "Ativo"
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.weight) {
+    if (!formData.nome || !formData.peso) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha o nome e o peso da carga.",
@@ -193,30 +116,30 @@ export default function Cargo() {
       return;
     }
 
-    const cargoData = {
-      name: formData.name,
-      weight: parseFloat(formData.weight),
-      value: parseFloat(formData.value) || 0,
-      description: formData.description,
-      type: formData.type,
+    const cargaData: CargaInput = {
+      nome: formData.nome,
+      peso: parseFloat(formData.peso),
+      valor: parseFloat(formData.valor) || 0,
+      descricao: formData.descricao,
+      tipo: formData.tipo,
       status: formData.status,
     };
 
     if (editingCargo) {
-      updateCargo.mutate({ id: editingCargo.id, ...cargoData });
+      updateMutation.mutate({ id: editingCargo.id, data: cargaData });
     } else {
-      createCargo.mutate(cargoData);
+      createMutation.mutate(cargaData);
     }
   };
 
-  const handleEdit = (cargo: Cargo) => {
+  const handleEdit = (cargo: Carga) => {
     setEditingCargo(cargo);
     setFormData({
-      name: cargo.name,
-      weight: cargo.weight.toString(),
-      value: cargo.value.toString(),
-      description: cargo.description || "",
-      type: cargo.type,
+      nome: cargo.nome,
+      peso: cargo.peso.toString(),
+      valor: cargo.valor.toString(),
+      descricao: cargo.descricao || "",
+      tipo: cargo.tipo,
       status: cargo.status
     });
     setIsDialogOpen(true);
@@ -230,19 +153,8 @@ export default function Cargo() {
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      general: "Geral",
-      fragile: "Frágil", 
-      perishable: "Perecível",
-      hazardous: "Perigosa",
-      refrigerated: "Refrigerada"
-    };
-    return types[type] || type;
-  };
-
   const getStatusColor = (status: string) => {
-    return status === "active" ? "default" : "secondary";
+    return status === "Ativo" ? "default" : "secondary";
   };
 
   return (
@@ -250,9 +162,12 @@ export default function Cargo() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Cargas</h1>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <Package className="h-8 w-8 text-primary" />
+            Cargas
+          </h1>
           <p className="text-muted-foreground">
-            Gerencie as cargas para suas simulações de transporte.
+            Gerencie as cargas do sistema.
           </p>
         </div>
         
@@ -279,67 +194,67 @@ export default function Cargo() {
               
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
+                  <Label htmlFor="nome" className="text-right">
                     Nome *
                   </Label>
                   <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    id="nome"
+                    value={formData.nome}
+                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                     className="col-span-3"
                     placeholder="Ex: Eletrônicos"
                   />
                 </div>
                 
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="weight" className="text-right">
+                  <Label htmlFor="peso" className="text-right">
                     Peso (kg) *
                   </Label>
                   <Input
-                    id="weight"
+                    id="peso"
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                    value={formData.peso}
+                    onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
                     className="col-span-3"
                     placeholder="0.00"
                   />
                 </div>
                 
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="value" className="text-right">
+                  <Label htmlFor="valor" className="text-right">
                     Valor (R$)
                   </Label>
                   <Input
-                    id="value"
+                    id="valor"
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.value}
-                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                    value={formData.valor}
+                    onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
                     className="col-span-3"
                     placeholder="0.00"
                   />
                 </div>
                 
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="type" className="text-right">
+                  <Label htmlFor="tipo" className="text-right">
                     Tipo
                   </Label>
                   <Select
-                    value={formData.type}
-                    onValueChange={(value) => setFormData({ ...formData, type: value })}
+                    value={formData.tipo}
+                    onValueChange={(value) => setFormData({ ...formData, tipo: value })}
                   >
                     <SelectTrigger className="col-span-3">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="general">Geral</SelectItem>
-                      <SelectItem value="fragile">Frágil</SelectItem>
-                      <SelectItem value="perishable">Perecível</SelectItem>
-                      <SelectItem value="hazardous">Perigosa</SelectItem>
-                      <SelectItem value="refrigerated">Refrigerada</SelectItem>
+                      <SelectItem value="Geral">Geral</SelectItem>
+                      <SelectItem value="Frágil">Frágil</SelectItem>
+                      <SelectItem value="Perecível">Perecível</SelectItem>
+                      <SelectItem value="Perigosa">Perigosa</SelectItem>
+                      <SelectItem value="Refrigerada">Refrigerada</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -356,20 +271,20 @@ export default function Cargo() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Ativo</SelectItem>
-                      <SelectItem value="inactive">Inativo</SelectItem>
+                      <SelectItem value="Ativo">Ativo</SelectItem>
+                      <SelectItem value="Inativo">Inativo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label htmlFor="description" className="text-right pt-2">
+                  <Label htmlFor="descricao" className="text-right pt-2">
                     Descrição
                   </Label>
                   <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    id="descricao"
+                    value={formData.descricao}
+                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                     className="col-span-3"
                     placeholder="Informações adicionais sobre a carga..."
                     rows={3}
@@ -381,7 +296,7 @@ export default function Cargo() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                   {editingCargo ? "Atualizar" : "Cadastrar"}
                 </Button>
               </DialogFooter>
@@ -411,7 +326,7 @@ export default function Cargo() {
                   Carregando cargas...
                 </TableCell>
               </TableRow>
-            ) : cargo.length === 0 ? (
+            ) : cargas.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <div className="flex flex-col items-center gap-2">
@@ -424,19 +339,19 @@ export default function Cargo() {
                 </TableCell>
               </TableRow>
             ) : (
-              cargo.map((item) => (
+              cargas.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{Number(item.weight || 0).toLocaleString('pt-BR')} kg</TableCell>
-                  <TableCell>R$ {Number(item.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                  <TableCell>{getTypeLabel(item.type)}</TableCell>
+                  <TableCell className="font-medium">{item.nome}</TableCell>
+                  <TableCell>{Number(item.peso || 0).toLocaleString('pt-BR')} kg</TableCell>
+                  <TableCell>R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                  <TableCell>{item.tipo}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusColor(item.status)}>
-                      {item.status === "active" ? "Ativo" : "Inativo"}
+                      {item.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="max-w-xs truncate">
-                    {item.description || "-"}
+                    {item.descricao || "-"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -450,7 +365,8 @@ export default function Cargo() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deleteCargo.mutate(item.id)}
+                        onClick={() => deleteMutation.mutate(item.id)}
+                        disabled={deleteMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
