@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { VehicleCostsDialog } from "@/components/VehicleCostsDialog"
 import { 
   Dialog,
   DialogContent,
@@ -32,122 +31,93 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Truck, Plus, Edit, Trash2, Search, Filter, Upload, Download, DollarSign } from "lucide-react"
+import { Truck, Plus, Edit, Trash2, Search, Filter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/integrations/supabase/client"
-import { useAuth } from "@/hooks/useAuth"
-import { CSVImportDialog } from "@/components/CSVImportDialog"
-import { TooltipInfo } from "@/components/TooltipInfo"
+import { veiculosApi, Veiculo, VeiculoInput } from "@/lib/api"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
-type VehicleStatus = 'Disponível' | 'Em_Manutenção' | 'Em_Uso'
-
-interface Vehicle {
-  id: string
-  user_id: string
-  tipo: string
-  capacidade_ton: number
-  km_por_litro: number
-  status: VehicleStatus
-  created_at: string
-  updated_at: string
-}
-
-// Componente de formulário movido para fora para evitar recriação
 const VehicleForm = ({ 
   formData, 
   setFormData, 
   onSubmit, 
   onCancel, 
-  isEdit = false 
+  isEdit = false,
+  isLoading = false
 }: { 
-  formData: { tipo: string; capacidade_ton: string; km_por_litro: string; status: VehicleStatus }
+  formData: { placa: string; modelo: string; tipoVeiculo: string; capacidadePeso: string; custoPorKm: string; status: string }
   setFormData: (data: any) => void
   onSubmit: (e: React.FormEvent) => void
   onCancel: () => void
   isEdit?: boolean
+  isLoading?: boolean
 }) => (
   <form onSubmit={onSubmit} className="space-y-4">
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="placa">Placa</Label>
+        <Input
+          id="placa"
+          placeholder="ABC-1234"
+          value={formData.placa}
+          onChange={(e) => setFormData({ ...formData, placa: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="modelo">Modelo</Label>
+        <Input
+          id="modelo"
+          placeholder="Ex: Volvo FH"
+          value={formData.modelo}
+          onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
+          required
+        />
+      </div>
+    </div>
+
     <div className="space-y-2">
-      <Label htmlFor="tipo">Tipo de Veículo</Label>
+      <Label htmlFor="tipoVeiculo">Tipo de Veículo</Label>
       <Input
-        id="tipo"
+        id="tipoVeiculo"
         placeholder="Ex: Caminhão, Van, Carreta"
-        value={formData.tipo}
-        onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+        value={formData.tipoVeiculo}
+        onChange={(e) => setFormData({ ...formData, tipoVeiculo: e.target.value })}
         required
       />
     </div>
     
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
-        <div className="flex items-center">
-          <Label htmlFor="capacidade_ton">Capacidade (toneladas)</Label>
-          <TooltipInfo content="Peso máximo que o veículo pode transportar. Uma tonelada equivale a 1.000 kg. Ex: Se o caminhão aguenta 40 toneladas, ele pode carregar 40.000 kg de carga." />
-        </div>
+        <Label htmlFor="capacidadePeso">Capacidade (kg)</Label>
         <Input
-          id="capacidade_ton"
+          id="capacidadePeso"
           type="number"
           step="0.01"
-          min="0.1"
-          max="100"
-          placeholder="40.00"
-          value={formData.capacidade_ton}
-          onChange={(e) => setFormData({ ...formData, capacidade_ton: e.target.value })}
-          onInvalid={(e) => {
-            const input = e.target as HTMLInputElement;
-            if (input.validity.rangeUnderflow) {
-              input.setCustomValidity('⚠️ A capacidade mínima é 0.1 toneladas (100 kg). Veículos menores não são considerados veículos de carga.');
-            } else if (input.validity.rangeOverflow) {
-              input.setCustomValidity('⚠️ A capacidade máxima é 100 toneladas. Se seu veículo é maior, contate o suporte.');
-            } else {
-              input.setCustomValidity('⚖️ Digite uma capacidade válida entre 0.1 e 100 toneladas.');
-            }
-          }}
-          onInput={(e) => {
-            const input = e.target as HTMLInputElement;
-            input.setCustomValidity('');
-          }}
+          min="0"
+          placeholder="40000"
+          value={formData.capacidadePeso}
+          onChange={(e) => setFormData({ ...formData, capacidadePeso: e.target.value })}
           required
-          title="Capacidade do veículo em toneladas (entre 0.1 e 100 ton)"
         />
       </div>
       <div className="space-y-2">
-        <div className="flex items-center">
-          <Label htmlFor="km_por_litro">Consumo (Km/litro)</Label>
-          <TooltipInfo content="Quantos quilômetros o veículo percorre com 1 litro de diesel. Ex: Se consome 3,2 km/l, significa que a cada litro ele anda 3,2 km. Quanto maior esse número, mais econômico é o veículo." />
-        </div>
+        <Label htmlFor="custoPorKm">Custo por Km (R$)</Label>
         <Input
-          id="km_por_litro"
+          id="custoPorKm"
           type="number"
           step="0.01"
-          min="0.1"
-          max="20"
-          placeholder="3.20"
-          value={formData.km_por_litro}
-          onChange={(e) => setFormData({ ...formData, km_por_litro: e.target.value })}
-          onInvalid={(e) => {
-            const input = e.target as HTMLInputElement;
-            if (input.validity.rangeUnderflow) {
-              input.setCustomValidity('⛽ O consumo mínimo é 0.1 km/l. Se for menor, o veículo é muito ineficiente.');
-            } else if (input.validity.rangeOverflow) {
-              input.setCustomValidity('⛽ O consumo máximo é 20 km/l. Veículos de carga pesada geralmente consomem entre 2 a 5 km/l.');
-            } else {
-              input.setCustomValidity('⛽ Digite um consumo válido entre 0.1 e 20 km/l.');
-            }
-          }}
-          onInput={(e) => {
-            const input = e.target as HTMLInputElement;
-            input.setCustomValidity('');
-          }}
+          min="0"
+          placeholder="3.50"
+          value={formData.custoPorKm}
+          onChange={(e) => setFormData({ ...formData, custoPorKm: e.target.value })}
           required
-          title="Consumo do veículo em km/litro (típico: 2 a 5 km/l para caminhões)"
         />
       </div>
     </div>
 
     <div className="space-y-2">
       <Label htmlFor="status">Status</Label>
-      <Select value={formData.status} onValueChange={(value: VehicleStatus) => setFormData({ ...formData, status: value })}>
+      <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
         <SelectTrigger>
           <SelectValue placeholder="Selecione o status" />
         </SelectTrigger>
@@ -163,7 +133,7 @@ const VehicleForm = ({
       <Button type="button" variant="secondary" onClick={onCancel}>
         Cancelar
       </Button>
-      <Button type="submit">
+      <Button type="submit" disabled={isLoading}>
         {isEdit ? 'Atualizar' : 'Cadastrar'} Veículo
       </Button>
     </DialogFooter>
@@ -171,66 +141,82 @@ const VehicleForm = ({
 )
 
 const Vehicles = () => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([])
+  const [filteredVehicles, setFilteredVehicles] = useState<Veiculo[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [editingVehicle, setEditingVehicle] = useState<Veiculo | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
-  const [importOpen, setImportOpen] = useState(false)
-  const [costsDialogVehicle, setCostsDialogVehicle] = useState<Vehicle | null>(null)
   const [formData, setFormData] = useState({
-    tipo: '',
-    capacidade_ton: '',
-    km_por_litro: '',
-    status: 'Disponível' as VehicleStatus
+    placa: '',
+    modelo: '',
+    tipoVeiculo: '',
+    capacidadePeso: '',
+    custoPorKm: '',
+    status: 'Disponível'
   })
   const { toast } = useToast()
-  const { user } = useAuth()
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    if (user) {
-      fetchVehicles()
-    }
-  }, [user])
+  // Fetch vehicles
+  const { data: vehicles = [], isLoading } = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: veiculosApi.getAll,
+  })
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: veiculosApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      resetForm()
+      setIsDialogOpen(false)
+      toast({ title: "Veículo cadastrado com sucesso!" })
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro ao cadastrar veículo", description: error.message, variant: "destructive" })
+    },
+  })
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: VeiculoInput }) => veiculosApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      resetForm()
+      setIsEditDialogOpen(false)
+      setEditingVehicle(null)
+      toast({ title: "Veículo atualizado com sucesso!" })
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro ao atualizar veículo", description: error.message, variant: "destructive" })
+    },
+  })
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: veiculosApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      toast({ title: "Veículo removido com sucesso!" })
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro ao remover veículo", description: error.message, variant: "destructive" })
+    },
+  })
 
   useEffect(() => {
     filterVehicles()
   }, [vehicles, searchTerm, statusFilter])
-
-  const fetchVehicles = async () => {
-    try {
-      setIsLoading(true)
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setVehicles((data || []).map(vehicle => ({
-        ...vehicle,
-        status: vehicle.status as VehicleStatus
-      })))
-    } catch (error) {
-      console.error('Error fetching vehicles:', error)
-      toast({
-        title: "Erro ao carregar veículos",
-        description: "Não foi possível carregar a lista de veículos.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const filterVehicles = () => {
     let filtered = vehicles
 
     if (searchTerm) {
       filtered = filtered.filter(vehicle =>
-        vehicle.tipo.toLowerCase().includes(searchTerm.toLowerCase())
+        vehicle.tipoVeiculo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle.placa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle.modelo.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -244,57 +230,26 @@ const Vehicles = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user) {
-      toast({
-        title: "Erro de autenticação",
-        description: "Você precisa estar logado para cadastrar veículos.",
-        variant: "destructive",
-      })
-      return
+    const vehicleData: VeiculoInput = {
+      placa: formData.placa,
+      modelo: formData.modelo,
+      tipoVeiculo: formData.tipoVeiculo,
+      capacidadePeso: parseFloat(formData.capacidadePeso),
+      custoPorKm: parseFloat(formData.custoPorKm),
+      status: formData.status
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .insert([
-          {
-            user_id: user.id,
-            tipo: formData.tipo,
-            capacidade_ton: parseFloat(formData.capacidade_ton),
-            km_por_litro: parseFloat(formData.km_por_litro),
-            status: formData.status
-          }
-        ])
-        .select()
-
-      if (error) throw error
-
-      if (data) {
-        const newVehicle = { ...data[0], status: data[0].status as VehicleStatus }
-        setVehicles([newVehicle, ...vehicles])
-        resetForm()
-        setIsDialogOpen(false)
-        toast({
-          title: "Veículo cadastrado",
-          description: "O veículo foi adicionado com sucesso à frota.",
-        })
-      }
-    } catch (error) {
-      console.error('Error creating vehicle:', error)
-      toast({
-        title: "Erro ao cadastrar veículo",
-        description: "Não foi possível cadastrar o veículo. Tente novamente.",
-        variant: "destructive",
-      })
-    }
+    createMutation.mutate(vehicleData)
   }
 
-  const handleEdit = (vehicle: Vehicle) => {
+  const handleEdit = (vehicle: Veiculo) => {
     setEditingVehicle(vehicle)
     setFormData({
-      tipo: vehicle.tipo,
-      capacidade_ton: vehicle.capacidade_ton.toString(),
-      km_por_litro: vehicle.km_por_litro.toString(),
+      placa: vehicle.placa,
+      modelo: vehicle.modelo,
+      tipoVeiculo: vehicle.tipoVeiculo,
+      capacidadePeso: vehicle.capacidadePeso.toString(),
+      custoPorKm: vehicle.custoPorKm.toString(),
       status: vehicle.status
     })
     setIsEditDialogOpen(true)
@@ -304,112 +259,30 @@ const Vehicles = () => {
     e.preventDefault()
     if (!editingVehicle) return
 
-    try {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .update({
-          tipo: formData.tipo,
-          capacidade_ton: parseFloat(formData.capacidade_ton),
-          km_por_litro: parseFloat(formData.km_por_litro),
-          status: formData.status
-        })
-        .eq('id', editingVehicle.id)
-        .select()
-
-      if (error) throw error
-
-      if (data) {
-        const updatedVehicle = { ...data[0], status: data[0].status as VehicleStatus }
-        setVehicles(vehicles.map(v => v.id === editingVehicle.id ? updatedVehicle : v))
-        resetForm()
-        setIsEditDialogOpen(false)
-        setEditingVehicle(null)
-        toast({
-          title: "Veículo atualizado",
-          description: "As informações do veículo foram atualizadas com sucesso.",
-        })
-      }
-    } catch (error) {
-      console.error('Error updating vehicle:', error)
-      toast({
-        title: "Erro ao atualizar veículo",
-        description: "Não foi possível atualizar o veículo. Tente novamente.",
-        variant: "destructive",
-      })
+    const vehicleData: VeiculoInput = {
+      placa: formData.placa,
+      modelo: formData.modelo,
+      tipoVeiculo: formData.tipoVeiculo,
+      capacidadePeso: parseFloat(formData.capacidadePeso),
+      custoPorKm: parseFloat(formData.custoPorKm),
+      status: formData.status
     }
-  }
 
-  const handleDelete = async (vehicleId: string) => {
-    try {
-      const { error } = await supabase
-        .from('vehicles')
-        .delete()
-        .eq('id', vehicleId)
-
-      if (error) throw error
-
-      setVehicles(vehicles.filter(v => v.id !== vehicleId))
-      toast({
-        title: "Veículo removido",
-        description: "O veículo foi removido da frota.",
-      })
-    } catch (error) {
-      console.error('Error deleting vehicle:', error)
-      toast({
-        title: "Erro ao remover veículo",
-        description: "Não foi possível remover o veículo. Tente novamente.",
-        variant: "destructive",
-      })
-    }
+    updateMutation.mutate({ id: editingVehicle.id, data: vehicleData })
   }
 
   const resetForm = () => {
     setFormData({
-      tipo: '',
-      capacidade_ton: '',
-      km_por_litro: '',
+      placa: '',
+      modelo: '',
+      tipoVeiculo: '',
+      capacidadePeso: '',
+      custoPorKm: '',
       status: 'Disponível'
     })
   }
 
-  const handleImport = async (data: any[]) => {
-    if (!user) return
-    
-    const vehiclesToInsert = data.map(vehicle => ({
-      ...vehicle,
-      user_id: user.id
-    }))
-
-    const { error } = await supabase
-      .from('vehicles')
-      .insert(vehiclesToInsert)
-
-    if (error) throw error
-    fetchVehicles()
-  }
-
-  const handleExport = () => {
-    const csv = [
-      ['Tipo', 'Capacidade (ton)', 'KM/Litro', 'Status'].join(','),
-      ...vehicles.map(v => 
-        [v.tipo, v.capacidade_ton, v.km_por_litro, v.status].join(',')
-      )
-    ].join('\n')
-
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `veiculos-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    
-    toast({
-      title: "Exportado",
-      description: "Veículos exportados com sucesso"
-    })
-  }
-
-  const getStatusBadge = (status: VehicleStatus) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Disponível':
         return <Badge className="bg-success/20 text-success-foreground border-success/30">Disponível</Badge>
@@ -445,7 +318,7 @@ const Vehicles = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header com busca e filtros */}
+      {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between min-h-[80px]">
           <div className="space-y-1">
@@ -454,19 +327,11 @@ const Vehicles = () => {
               Gestão de Veículos
             </h1>
             <p className="text-muted-foreground">
-              Cadastre e gerencie a frota de veículos para suas simulações de transporte.
+              Cadastre e gerencie a frota de veículos.
             </p>
           </div>
           
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Importar CSV
-            </Button>
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Exportar CSV
-            </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -486,27 +351,28 @@ const Vehicles = () => {
                   setFormData={setFormData}
                   onSubmit={handleSubmit}
                   onCancel={handleCancelForm}
+                  isLoading={createMutation.isPending}
                 />
               </DialogContent>
             </Dialog>
           </div>
         </div>
 
-        {/* Barra de busca e filtros */}
+        {/* Search and filters */}
         <div className="flex gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Buscar por tipo de veículo..."
+              placeholder="Buscar por placa, modelo ou tipo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
-          <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-48">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar por status" />
+              <SelectValue placeholder="Filtrar status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
@@ -518,8 +384,8 @@ const Vehicles = () => {
         </div>
       </div>
 
-      {/* Lista de veículos */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Vehicle list */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredVehicles.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <Truck className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -535,27 +401,15 @@ const Vehicles = () => {
           </div>
         ) : (
           filteredVehicles.map((vehicle) => (
-            <Card key={vehicle.id} className="relative">
+            <Card key={vehicle.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{vehicle.tipo}</CardTitle>
-                    {getStatusBadge(vehicle.status)}
+                  <div>
+                    <CardTitle className="text-lg">{vehicle.placa}</CardTitle>
+                    <CardDescription>{vehicle.modelo}</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCostsDialogVehicle(vehicle)}
-                      title="Gerenciar custos do veículo"
-                    >
-                      <DollarSign className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(vehicle)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(vehicle)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
@@ -568,13 +422,13 @@ const Vehicles = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.
+                            Tem certeza que deseja remover o veículo {vehicle.placa}?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(vehicle.id)}>
-                            Excluir
+                          <AlertDialogAction onClick={() => deleteMutation.mutate(vehicle.id)}>
+                            Remover
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -582,15 +436,23 @@ const Vehicles = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{vehicle.capacidade_ton}</p>
-                    <p className="text-xs text-muted-foreground">toneladas</p>
+              <CardContent>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tipo:</span>
+                    <span>{vehicle.tipoVeiculo}</span>
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{vehicle.km_por_litro}</p>
-                    <p className="text-xs text-muted-foreground">km/litro</p>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Capacidade:</span>
+                    <span>{vehicle.capacidadePeso.toLocaleString('pt-BR')} kg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Custo/Km:</span>
+                    <span>R$ {vehicle.custoPorKm.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Status:</span>
+                    {getStatusBadge(vehicle.status)}
                   </div>
                 </div>
               </CardContent>
@@ -599,13 +461,13 @@ const Vehicles = () => {
         )}
       </div>
 
-      {/* Dialog de edição */}
+      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Veículo</DialogTitle>
             <DialogDescription>
-              Altere as informações do veículo {editingVehicle?.tipo}.
+              Atualize as informações do veículo.
             </DialogDescription>
           </DialogHeader>
           <VehicleForm 
@@ -613,26 +475,11 @@ const Vehicles = () => {
             setFormData={setFormData}
             onSubmit={handleEditSubmit}
             onCancel={handleCancelForm}
-            isEdit 
+            isEdit
+            isLoading={updateMutation.isPending}
           />
         </DialogContent>
       </Dialog>
-
-      <CSVImportDialog
-        open={importOpen}
-        onOpenChange={setImportOpen}
-        type="vehicles"
-        onImport={handleImport}
-      />
-
-      {costsDialogVehicle && (
-        <VehicleCostsDialog
-          vehicleId={costsDialogVehicle.id}
-          vehicleName={costsDialogVehicle.tipo}
-          open={!!costsDialogVehicle}
-          onOpenChange={(open) => !open && setCostsDialogVehicle(null)}
-        />
-      )}
     </div>
   )
 }

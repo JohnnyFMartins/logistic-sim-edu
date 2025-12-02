@@ -3,9 +3,6 @@ import {
   Truck, 
   Route, 
   MapPin, 
-  Play,
-  DollarSign, 
-  BarChart3,
   Package
 } from "lucide-react"
 import nexusLogo from "@/assets/nexus-logo.png"
@@ -39,33 +36,9 @@ const Index = () => {
       shadowClass: "group-hover:shadow-amber-500/50"
     },
     { 
-      title: "Viagens", 
-      url: "/viagens", 
+      title: "Pedidos", 
+      url: "/pedidos", 
       icon: MapPin,
-      bgClass: "bg-warning/20 hover:bg-warning/30",
-      iconClass: "text-warning",
-      shadowClass: "group-hover:shadow-warning/50"
-    },
-    { 
-      title: "Simulações", 
-      url: "/simulations", 
-      icon: Play,
-      bgClass: "bg-primary/20 hover:bg-primary/30",
-      iconClass: "text-primary",
-      shadowClass: "group-hover:shadow-primary/50"
-    },
-    { 
-      title: "Parâmetros", 
-      url: "/custos", 
-      icon: DollarSign,
-      bgClass: "bg-success/20 hover:bg-success/30",
-      iconClass: "text-success",
-      shadowClass: "group-hover:shadow-success/50"
-    },
-    { 
-      title: "Relatórios", 
-      url: "/reports", 
-      icon: BarChart3,
       bgClass: "bg-warning/20 hover:bg-warning/30",
       iconClass: "text-warning",
       shadowClass: "group-hover:shadow-warning/50"
@@ -88,7 +61,7 @@ const Index = () => {
           </h1>
           <div className="inline-block border-2 border-primary/30 rounded-full px-6 py-2 backdrop-blur-sm">
             <p className="text-primary font-medium">
-              Logística sem fronteiras, aprendizagem exponencial!
+              Sistema de Gestão de Transporte
             </p>
           </div>
         </div>
@@ -96,7 +69,7 @@ const Index = () => {
 
       {/* Icon Menu Grid */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-8 md:gap-12 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-16">
           {menuItems.map((item) => (
             <button
               key={item.title}
@@ -123,7 +96,7 @@ const Index = () => {
         {/* Quick Info */}
         <div className="text-center max-w-2xl mx-auto">
           <p className="text-muted-foreground">
-            Sistema educacional de gestão de transporte para ensino de logística.
+            Sistema de gestão de transporte e logística.
             <br />
             Selecione uma opção acima para começar.
           </p>

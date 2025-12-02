@@ -1,11 +1,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { authApi, setToken, removeToken, isAuthenticated, getUserIdFromToken, decodeToken } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
+
+interface User {
+  id: number;
+  nome: string;
+  email: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -16,91 +20,129 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    // ENTÃO verificar sessão existente
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Check for existing token on mount
+    checkAuth();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
+  const checkAuth = async () => {
+    try {
+      if (isAuthenticated()) {
+        const userId = getUserIdFromToken();
+        if (userId) {
+          // Check if token is expired
+          const token = localStorage.getItem('token');
+          if (token) {
+            const decoded = decodeToken(token);
+            if (decoded && decoded.exp * 1000 < Date.now()) {
+              // Token expired
+              removeToken();
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+          }
 
-    if (error) {
-      toast({
-        title: "Erro no cadastro",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+          // Fetch user profile
+          try {
+            const profile = await authApi.getProfile(userId);
+            setUser({
+              id: userId,
+              nome: profile.nome,
+              email: profile.email,
+            });
+          } catch (error) {
+            // If profile fetch fails, still keep user logged in with minimal info
+            setUser({
+              id: userId,
+              nome: '',
+              email: '',
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      removeToken();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUp = async (email: string, password: string, fullName: string) => {
+    try {
+      await authApi.register(fullName, email, password);
+      
       toast({
         title: "Cadastro realizado!",
-        description: "Verifique seu email para confirmar a conta.",
+        description: "Sua conta foi criada. Faça login para continuar.",
       });
-    }
 
-    return { error };
+      return { error: null };
+    } catch (error: any) {
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Não foi possível criar a conta.",
+        variant: "destructive",
+      });
+      return { error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const response = await authApi.login(email, password);
+      setToken(response.token);
+      
+      const userId = getUserIdFromToken();
+      if (userId) {
+        try {
+          const profile = await authApi.getProfile(userId);
+          setUser({
+            id: userId,
+            nome: profile.nome,
+            email: profile.email,
+          });
+        } catch {
+          setUser({
+            id: userId,
+            nome: '',
+            email: email,
+          });
+        }
+      }
 
-    if (error) {
+      toast({
+        title: "Login realizado!",
+        description: "Bem-vindo ao NEXUS.",
+      });
+
+      return { error: null };
+    } catch (error: any) {
       toast({
         title: "Erro no login",
-        description: error.message,
+        description: error.message || "Email ou senha incorretos.",
         variant: "destructive",
       });
+      return { error };
     }
-
-    return { error };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Erro ao sair",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    removeToken();
+    setUser(null);
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado.",
+    });
   };
 
   return (
     <AuthContext.Provider value={{
       user,
-      session,
       loading,
       signUp,
       signIn,
